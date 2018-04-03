@@ -8,7 +8,8 @@ import attention_wrapper_mod
 
 
 def q_generation(features, labels, mode, params):
-    
+
+    dtype = params['dtype']
     hidden_size = params['hidden_size']
     voca_size = params['voca_size']   
     
@@ -26,17 +27,20 @@ def q_generation(features, labels, mode, params):
     with tf.variable_scope('SharedScope'):
         # Embedded inputs
         embd_s = embed_op(sentence, params, name = 'embedding_s')
-        embd_q = embed_op(question, params, name = 'embedding_q')
+        embd_q = embed_op(question[:, :-1], params, name = 'embedding_q')
 
         # Build encoder cell
-        def gru_cell():
+        def gru_cell_enc():
             cell = tf.nn.rnn_cell.GRUCell(hidden_size)
-            #cell = tf.contrib.rnn.BasicLSTMCell(hidden_size)
             return tf.contrib.rnn.DropoutWrapper(cell, 
                     output_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
+        def gru_cell_dec():
+            cell = tf.nn.rnn_cell.GRUCell(hidden_size * 2)
+            return tf.contrib.rnn.DropoutWrapper(cell,
+                    output_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
 
-        encoder_cell_fw = gru_cell() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['encoder_layer'])])
-        encoder_cell_bw = gru_cell() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['encoder_layer'])])
+        encoder_cell_fw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['encoder_layer'])])
+        encoder_cell_bw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['encoder_layer'])])
 
 
         # Run Dynamic RNN
@@ -53,9 +57,10 @@ def q_generation(features, labels, mode, params):
                 encoder_cell_bw,
                 inputs = embd_s,
                 sequence_length = len_s,
-                dtype = tf.float32)
+                dtype = dtype)
 
         encoder_outputs = tf.concat(encoder_outputs, 2)
+        encoder_state = tf.concat(encoder_state, -1)
         #encoder_outputs = tf.layers.dense(encoder_outputs, params['hidden_size'])
         
     # This part should be moved into QuestionGeneration scope    
@@ -69,7 +74,7 @@ def q_generation(features, labels, mode, params):
 
         # Create an attention mechanism
         attention_mechanism = tf.contrib.seq2seq.LuongAttention(
-                hidden_size, attention_states,
+                hidden_size * 2, attention_states,
                 memory_sequence_length=len_s)
 
         # batch_size should not be specified
@@ -77,31 +82,31 @@ def q_generation(features, labels, mode, params):
         # it may related to bug of tensorflow api
         batch_size = attention_mechanism._batch_size
         # Build decoder cell
-        decoder_cell = gru_cell() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['decoder_layer'])])
+        decoder_cell = gru_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['decoder_layer'])])
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
-                attention_layer_size=hidden_size)
-                #initial_cell_state = encoder_state)
+                attention_layer_size=hidden_size,
+                initial_cell_state = encoder_state)
 
         # Helper for decoder cell
 
         if mode == tf.estimator.ModeKeys.TRAIN:
-            #len_q_fake = params['maxlen_q_train'] * tf.ones([batch_size], dtype = tf.int32)
             len_q = tf.cast(len_q, tf.int32)
-            helper = tf.contrib.seq2seq.TrainingHelper(
-                    embd_q, len_q
-                    )
+            helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
+                    inputs = embd_q,
+                    sequence_length = len_q,
+                    embedding = embedding_q,
+                    sampling_probability = 0.25)
         else: # EVAL & TEST
-            #start_token = params['start_token'] * tf.ones([batch_size], dtype = tf.int32)
-            #helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
-            #        embedding_q, start_token, params['fake_end_token']
-            #        )
+            start_token = params['start_token'] * tf.ones([batch_size], dtype = tf.int32)
+            helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
+                    embedding_q, start_token, 2
+                    )
             len_q = tf.cast(len_q, tf.int32)
-            helper = tf.contrib.seq2seq.TrainingHelper(
-                    embd_q, len_q)
+
         # Decoder
-        initial_state = decoder_cell.zero_state(dtype = tf.float32, batch_size = batch_size)
+        initial_state = decoder_cell.zero_state(dtype = dtype, batch_size = batch_size)
         projection_q = tf.layers.Dense(voca_size, use_bias = False)
 
         decoder = tf.contrib.seq2seq.BasicDecoder(
@@ -109,13 +114,11 @@ def q_generation(features, labels, mode, params):
             output_layer=None)
 
         # Dynamic decoding
-        max_iter = params['maxlen_q_dev'] 
-
         if mode == tf.estimator.ModeKeys.TRAIN:
             outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished=True, maximum_iterations = None)
-        else: # Test
-            #outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished=True, maximum_iterations = max_iter)
-            outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished=True, maximum_iterations = None)
+        else: # Test & Eval
+            max_iter = params['maxlen_q_dev']
+            outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished=True, maximum_iterations = max_iter)
 
         logits_q = projection_q(outputs.rnn_output)
 
@@ -132,12 +135,22 @@ def q_generation(features, labels, mode, params):
                     })
     # Loss
     label_q = tf.cast(question[:,1:], tf.int32, name = 'label_q')
-    label_q = label_q[:, :tf.reduce_max(len_q)]
+    maxlen_q = params['maxlen_q_train'] if mode == tf.estimator.ModeKeys.TRAIN else params['maxlen_q_dev']
+    current_length = tf.shape(logits_q)[1]
+    def concat_padding():
+        numpad = maxlen_q - current_length
+        padding = tf.zeros([batch_size, num_pad, params['voca_size']], dtype = dtype)
+
+        return tf.concat([logits_q, padding], axis = 1)
+
+    def slice_to_maxlen():
+        return tf.slice(logits_q, [0,0,0], [batch_size, maxlen_q, params['voca_size']])
+
+    logits_q = tf.cond(current_length < maxlen_q,
+            concat_padding,
+            slice_to_maxlen)
     
-    if mode == tf.estimator.ModeKeys.TRAIN:
-        weight_q = tf.sequence_mask(len_q, tf.reduce_max(len_q), tf.float32)
-    elif mode == tf.estimator.ModeKeys.EVAL:
-        weight_q = tf.sequence_mask(len_q, tf.reduce_max(len_q), tf.float32)
+    weight_q = tf.sequence_mask(len_q, maxlen_q, dtype)
 
     loss_q = tf.contrib.seq2seq.sequence_loss(
             logits_q, 
