@@ -138,7 +138,7 @@ def q_generation(features, labels, mode, params):
     maxlen_q = params['maxlen_q_train'] if mode == tf.estimator.ModeKeys.TRAIN else params['maxlen_q_dev']
     current_length = tf.shape(logits_q)[1]
     def concat_padding():
-        numpad = maxlen_q - current_length
+        num_pad = maxlen_q - current_length
         padding = tf.zeros([batch_size, num_pad, params['voca_size']], dtype = dtype)
 
         return tf.concat([logits_q, padding], axis = 1)

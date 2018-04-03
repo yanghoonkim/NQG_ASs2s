@@ -22,7 +22,7 @@ def basic_params():
         end_token = 2, # <EOS> index
 
         # learning parameters
-        batch_size = 128,
+        batch_size = 32,
         loss_balance = 1,
         learning_rate = 0.001,
         decay_step = None,
