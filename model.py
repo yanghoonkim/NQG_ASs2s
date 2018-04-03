@@ -101,7 +101,7 @@ def q_generation(features, labels, mode, params):
         else: # EVAL & TEST
             start_token = params['start_token'] * tf.ones([batch_size], dtype = tf.int32)
             helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
-                    embedding_q, start_token, 2
+                    embedding_q, start_token, params['end_token']
                     )
             len_q = tf.cast(len_q, tf.int32)
 
