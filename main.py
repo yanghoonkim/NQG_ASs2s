@@ -69,14 +69,14 @@ def main(unused):
     train_question = train_question[permutation]
     train_sentence_length = train_sentence_length[permutation]
     train_question_length = train_question_length[permutation]
-
+    
     # Training input function for estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={"s": train_sentence, 'q': train_question,
             'len_s': train_sentence_length, 'len_q': train_question_length},
         y=train_sentence, # useless value
         batch_size = model_params['batch_size'],
-        num_epochs=None,
+        num_epochs=FLAGS.num_epochs,
         shuffle=True)
     
     # Load evaluation data
@@ -93,17 +93,14 @@ def main(unused):
         y = None,
         batch_size = model_params['batch_size'],
         num_epochs=1,
-        shuffle=False)  
-    
-    # Calculate step size
-    total_steps = 90000/model_params['batch_size'] * FLAGS.num_epochs
+        shuffle=False)
 
     # define experiment
     exp_nn = tf.contrib.learn.Experiment(
             estimator = nn, 
             train_input_fn = train_input_fn, 
             eval_input_fn = eval_input_fn,
-            train_steps = total_steps,
+            train_steps = None,
             min_eval_frequency = 100)
 
     # train and evaluate
@@ -114,13 +111,13 @@ def main(unused):
         exp_nn.evaluate(delay_secs = 0)
 
     else: # 'pred'
-        # load preprocessed prediction data
-        # Still, pred data == eval data
+        # Load test data
+        test_sentence = np.load(FLAGS.test_sentence)
+        test_sentence_length = np.load(FLAGS.test_sentence_length)
 
         # prediction input function for estimator
         pred_input_fn = tf.estimator.inputs.numpy_input_fn(
-                x = {"s" : eval_sentence, 'q': eval_question,
-                    'len_s': eval_sentence_length, 'len_q': eval_question_length},
+                x = {"s" : test_sentence, 'len_s': test_sentence_length},
                 y = None,
                 batch_size = model_params['batch_size'],
                 num_epochs = 1,
@@ -144,11 +141,13 @@ if __name__ == '__main__':
     parser.add_argument('--eval_question', type = str, default = '', help = 'path to the evaluation question.')
     parser.add_argument('--eval_sentence_length', type = str, default = '')
     parser.add_argument('--eval_question_length', type = str, default = '')
+    parser.add_argument('--test_sentence', type = str, default = '', help = 'path to the test sentence.')
+    parser.add_argument('--test_sentence_length', type = str, default = '')
     parser.add_argument('--model_dir', type = str, help = 'path to save the model')
     parser.add_argument('--pred_dir', type = str, help = 'path to save the predictions')
     parser.add_argument('--params', type = str, help = 'parameter setting')
     parser.add_argument('--steps', type = int, default = 200000, help = 'training step size')
-    parser.add_argument('--num_epochs', default = 10, help = 'training epoch size')
+    parser.add_argument('--num_epochs', type = int, default = 10, help = 'training epoch size')
     FLAGS = parser.parse_args()
 
     tf.app.run(main)

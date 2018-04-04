@@ -18,7 +18,7 @@ pred(){
 }
 
 
-xinyadu(){
+xinyadu_glove(){
 	TRAIN_SENTENCE='data/squad/processed/xinyadu_processed/train_sentence.npy'
 	TRAIN_QUESTION='data/squad/processed/xinyadu_processed/train_question.npy'
 	TRAIN_LENGTH_S='data/squad/processed/xinyadu_processed/train_length_sentence.npy'
@@ -27,7 +27,9 @@ xinyadu(){
 	DEV_QUESTION='data/squad/processed/xinyadu_processed/dev_question.npy'
 	DEV_LENGTH_S='data/squad/processed/xinyadu_processed/dev_length_sentence.npy'
 	DEV_LENGTH_Q='data/squad/processed/xinyadu_processed/dev_length_question.npy'
-	PRED_DIR='result/question.txt'
+	TEST_SENTENCE='data/squad/processed/xinyadu_processed/test_sentence.npy'
+	TEST_LENGTH_S='data/squad/processed/xinyadu_processed/test_length_sentence.npy'
+	PRED_DIR='result/xinyadu_glove.txt'
 	PARAMS=basic_params
 }
 
@@ -51,8 +53,9 @@ python main.py \
 	--eval_question=$DEV_QUESTION \
 	--eval_sentence_length=$DEV_LENGTH_S \
 	--eval_question_length=$DEV_LENGTH_Q \
+	--test_sentence=$TEST_SENTENCE \
+	--test_sentence_length=$TEST_LENGTH_S \
 	--model_dir=$MODEL_DIR \
 	--pred_dir=$PRED_DIR \
 	--params=$PARAMS \
-	--steps=$TRAIN_STEPS\
 	--num_epochs=$NUM_EPOCHS

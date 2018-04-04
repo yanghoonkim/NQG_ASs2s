@@ -10,20 +10,22 @@ import tensorflow as tf
 
 def embed_op(inputs, params, name = 'embedding'):
     if params['embedding'] == None:
-        with tf.variable_scope('EmbeddingScope'):
+        with tf.variable_scope('EmbeddingScope', reuse = tf.AUTO_REUSE):
             embedding = tf.get_variable(
                     name, 
                     [params['voca_size'], params['hidden_size']], 
-                    dtype = params['dtype']
+                    dtype = params['dtype'],
+
                     )
     else:
         glove = np.load(params['embedding'])
-        with tf.variable_scope('EmbeddingScope'):
+        with tf.variable_scope('EmbeddingScope', reuse = tf.AUTO_REUSE):
             init = tf.constant_initializer(glove)
             embedding = tf.get_variable(
                     name,
-                    [params['voca_size'], params['hidden_size']],
-                    dtype = tf.float32,
+                    [params['voca_size'], 300],
+                    initializer = init,
+                    dtype = params['dtype'],
                     trainable = params['embedding_trainable'] 
                     )
 

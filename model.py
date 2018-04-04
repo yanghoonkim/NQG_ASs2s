@@ -4,7 +4,6 @@ import tensorflow as tf
 import sys
 sys.path.append('submodule/')
 from mytools import *
-import attention_wrapper_mod
 
 
 def q_generation(features, labels, mode, params):
@@ -20,14 +19,16 @@ def q_generation(features, labels, mode, params):
         question = features['q'] # label
         len_q = features['len_q']
     else:
-        question = features['q']
-        len_q = features['len_q']
+        question = None
+        len_q = None
     
     # Embedding for sentence, question and rnn encoding of sentence
     with tf.variable_scope('SharedScope'):
         # Embedded inputs
-        embd_s = embed_op(sentence, params, name = 'embedding_s')
-        embd_q = embed_op(question[:, :-1], params, name = 'embedding_q')
+        # Same name == embedding sharing
+        embd_s = embed_op(sentence, params, name = 'embedding')
+        if question is not None:
+            embd_q = embed_op(question[:, :-1], params, name = 'embedding')
 
         # Build encoder cell
         def gru_cell_enc():
@@ -39,8 +40,8 @@ def q_generation(features, labels, mode, params):
             return tf.contrib.rnn.DropoutWrapper(cell,
                     output_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
 
-        encoder_cell_fw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['encoder_layer'])])
-        encoder_cell_bw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['encoder_layer'])])
+        encoder_cell_fw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_enc() for _ in range(params['encoder_layer'])])
+        encoder_cell_bw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_enc() for _ in range(params['encoder_layer'])])
 
 
         # Run Dynamic RNN
@@ -59,13 +60,12 @@ def q_generation(features, labels, mode, params):
                 sequence_length = len_s,
                 dtype = dtype)
 
-        encoder_outputs = tf.concat(encoder_outputs, 2)
-        encoder_state = tf.concat(encoder_state, -1)
-        #encoder_outputs = tf.layers.dense(encoder_outputs, params['hidden_size'])
+        encoder_outputs = tf.concat(encoder_outputs, -1)
+        encoder_state = tf.concat(encoder_state, -1) if type(encoder_state) is not tuple else tuple(tf.concat([state_fw, state_bw], -1)for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]))
         
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
-        embedding_q = tf.get_variable('embedding_q')
+        embedding_q = tf.get_variable('embedding')
  
     # Rnn decoding of sentence with attention 
     with tf.variable_scope('QuestionGeneration'):
@@ -81,16 +81,18 @@ def q_generation(features, labels, mode, params):
         # if fixed, then the redundant eval_data will make error
         # it may related to bug of tensorflow api
         batch_size = attention_mechanism._batch_size
+
         # Build decoder cell
-        decoder_cell = gru_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell() for _ in range(params['decoder_layer'])])
+        decoder_cell = gru_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_dec() for _ in range(params['decoder_layer'])])
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
                 attention_layer_size=hidden_size,
                 initial_cell_state = encoder_state)
 
-        # Helper for decoder cell
+        decoder_cell = tf.contrib.rnn.OutputProjectionWrapper(decoder_cell, voca_size)
 
+        # Helper for decoder cell
         if mode == tf.estimator.ModeKeys.TRAIN:
             len_q = tf.cast(len_q, tf.int32)
             helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
@@ -103,11 +105,10 @@ def q_generation(features, labels, mode, params):
             helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
                     embedding_q, start_token, params['end_token']
                     )
-            len_q = tf.cast(len_q, tf.int32)
 
         # Decoder
         initial_state = decoder_cell.zero_state(dtype = dtype, batch_size = batch_size)
-        projection_q = tf.layers.Dense(voca_size, use_bias = False)
+        projection_q = tf.layers.Dense(voca_size, use_bias = True)
 
         decoder = tf.contrib.seq2seq.BasicDecoder(
             decoder_cell, helper, initial_state,
@@ -119,8 +120,9 @@ def q_generation(features, labels, mode, params):
         else: # Test & Eval
             max_iter = params['maxlen_q_dev']
             outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished=True, maximum_iterations = max_iter)
-
-        logits_q = projection_q(outputs.rnn_output)
+        
+        logits_q = outputs.rnn_output
+        #logits_q = projection_q(outputs.rnn_output)
 
     
     # Predictions

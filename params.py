@@ -4,12 +4,12 @@ def basic_params():
     '''A set of basic hyperparameters'''
     return tf.contrib.training.HParams(
         dtype = tf.float32,
-        voca_size = 30004,
+        voca_size = 34004,
         embedding = 'data/squad/processed/xinyadu_processed/glove840b_xinyadu_vocab300.npy',
         embedding_trainable = False,
         hidden_size = 600,
-        encoder_layer = 1,
-        decoder_layer = 1,
+        encoder_layer = 2,
+        decoder_layer = 2,
         
         maxlen_s = 61,
         maxlen_q_train = 31,
@@ -22,7 +22,7 @@ def basic_params():
         end_token = 2, # <EOS> index
 
         # learning parameters
-        batch_size = 32,
+        batch_size = 64,
         loss_balance = 1,
         learning_rate = 0.001,
         decay_step = None,
