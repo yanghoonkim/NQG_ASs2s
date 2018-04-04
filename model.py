@@ -61,7 +61,7 @@ def q_generation(features, labels, mode, params):
                 dtype = dtype)
 
         encoder_outputs = tf.concat(encoder_outputs, -1)
-        encoder_state = tf.concat(encoder_state, -1) if type(encoder_state) is not tuple else tuple(tf.concat([state_fw, state_bw], -1)for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]))
+        encoder_state = tf.concat(encoder_state, -1) if type(encoder_state[0]) is not tuple else tuple(tf.concat([state_fw, state_bw], -1)for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]))
         
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
