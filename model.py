@@ -34,11 +34,11 @@ def q_generation(features, labels, mode, params):
         def gru_cell_enc():
             cell = tf.nn.rnn_cell.GRUCell(hidden_size)
             return tf.contrib.rnn.DropoutWrapper(cell, 
-                    output_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
+                    input_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
         def gru_cell_dec():
             cell = tf.nn.rnn_cell.GRUCell(hidden_size * 2)
             return tf.contrib.rnn.DropoutWrapper(cell,
-                    output_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
+                    input_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
 
         encoder_cell_fw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_enc() for _ in range(params['encoder_layer'])])
         encoder_cell_bw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_enc() for _ in range(params['encoder_layer'])])
