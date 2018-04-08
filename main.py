@@ -8,6 +8,14 @@ import model as model
 
 FLAGS = None
 
+def remove_eos(sentence, eos = '<EOS>', pad = '<PAD>'):
+    if eos in sentence:
+        return sentence[:sentence.index(eos)] + '\n'
+    elif pad in sentence:
+        return sentence[:sentence.index(pad)] + '\n'
+    else:
+        return sentence + '\n'
+
 def write_result(predict_results):
     print 'Load dic file...'
     with open('data/squad/processed/xinyadu_processed/vocab_xinyadu.dic') as dic:
@@ -20,7 +28,8 @@ def write_result(predict_results):
             try : 
                 output = predict_results.next()
                 indices = [reversed_dic[index] for index in output['question']]
-                sentence = ' '.join(indices) + '\n'
+                sentence = ' '.join(indices)
+                sentence = remove_eos(sentence)
                 f.write(sentence)
 
             except StopIteration:

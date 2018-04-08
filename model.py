@@ -8,6 +8,7 @@ from mytools import *
 
 def q_generation(features, labels, mode, params):
 
+    
     dtype = params['dtype']
     hidden_size = params['hidden_size']
     voca_size = params['voca_size']   
@@ -15,9 +16,14 @@ def q_generation(features, labels, mode, params):
     sentence = features['s'] # [batch, length]
     len_s = features['len_s']
     
+    # batch_size should not be specified
+    # if fixed, then the redundant eval_data will make error
+    # it may related to bug of tensorflow api
+    batch_size = tf.shape(sentence)[0]
+    
     if mode != tf.estimator.ModeKeys.PREDICT:
-        question = features['q'] # label
-        len_q = features['len_q']
+        question = tf.cast(features['q'], tf.int32) # label
+        len_q = tf.cast(features['len_q'], tf.int32) 
     else:
         question = None
         len_q = None
@@ -28,7 +34,7 @@ def q_generation(features, labels, mode, params):
         # Same name == embedding sharing
         embd_s = embed_op(sentence, params, name = 'embedding')
         if question is not None:
-            embd_q = embed_op(question[:, :-1], params, name = 'embedding')
+            embd_q = embed_op(question, params, name = 'embedding')
 
         # Build encoder cell
         def gru_cell_enc():
@@ -77,24 +83,18 @@ def q_generation(features, labels, mode, params):
                 hidden_size * 2, attention_states,
                 memory_sequence_length=len_s)
 
-        # batch_size should not be specified
-        # if fixed, then the redundant eval_data will make error
-        # it may related to bug of tensorflow api
-        batch_size = attention_mechanism._batch_size
-
         # Build decoder cell
         decoder_cell = gru_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_dec() for _ in range(params['decoder_layer'])])
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
                 attention_layer_size=hidden_size,
-                initial_cell_state = encoder_state)
+                initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
 
         decoder_cell = tf.contrib.rnn.OutputProjectionWrapper(decoder_cell, voca_size)
 
         # Helper for decoder cell
         if mode == tf.estimator.ModeKeys.TRAIN:
-            len_q = tf.cast(len_q, tf.int32)
             helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
                     inputs = embd_q,
                     sequence_length = len_q,
@@ -136,7 +136,7 @@ def q_generation(features, labels, mode, params):
                     'question' : predictions_q
                     })
     # Loss
-    label_q = tf.cast(question[:,1:], tf.int32, name = 'label_q')
+    label_q = tf.concat([question[:,1:], tf.zeros([batch_size, 1], dtype = tf.int32)], axis = 1, name = 'label_q')
     maxlen_q = params['maxlen_q_train'] if mode == tf.estimator.ModeKeys.TRAIN else params['maxlen_q_dev']
     current_length = tf.shape(logits_q)[1]
     def concat_padding():
@@ -163,14 +163,12 @@ def q_generation(features, labels, mode, params):
             softmax_loss_function = None # default : sparse_softmax_cross_entropy
             )
     
-    loss_reg = tf.reduce_sum([tf.nn.l2_loss(v) for v in tf.trainable_variables()])
-    loss = loss_q + params['regularization'] * loss_reg
+    loss = loss_q 
 
     # eval_metric for estimator
     eval_metric_ops = None
 
     # Summary
-    tf.summary.scalar('loss_reg', loss_reg)
     tf.summary.scalar('loss_question', loss_q)
     tf.summary.scalar('total_loss', loss)
 
@@ -183,9 +181,9 @@ def q_generation(features, labels, mode, params):
 
     grad_and_var = optimizer.compute_gradients(loss, tf.trainable_variables())
     grad, var = zip(*grad_and_var)
-    clipped_grad, norm = tf.clip_by_global_norm(grad, 5)
-    train_op = optimizer.apply_gradients(zip(clipped_grad, var), global_step = tf.train.get_global_step())
-        
+    #clipped_grad, norm = tf.clip_by_global_norm(grad, 5)
+    train_op = optimizer.apply_gradients(zip(grad, var), global_step = tf.train.get_global_step())
+
     return tf.estimator.EstimatorSpec(
         mode=mode,
         loss=loss,

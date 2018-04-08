@@ -8,22 +8,20 @@ def basic_params():
         embedding = 'data/squad/processed/xinyadu_processed/glove840b_xinyadu_vocab300.npy',
         embedding_trainable = False,
         hidden_size = 600,
-        encoder_layer = 2,
+        encoder_layer = 1,
         decoder_layer = 2,
         
-        maxlen_s = 61,
-        maxlen_q_train = 31,
-        maxlen_q_dev = 26,
+        maxlen_s = 60,
+        maxlen_q_train = 32,
+        maxlen_q_dev = 27,
 
-        rnn_dropout = 0.3,
-        regularization = 0, # if zero, no regularization
+        rnn_dropout = 0.4,
 
         start_token = 1, # <GO> index
         end_token = 2, # <EOS> index
 
         # learning parameters
         batch_size = 64,
-        loss_balance = 1,
         learning_rate = 0.001,
         decay_step = None,
         decay_rate = 0.5
