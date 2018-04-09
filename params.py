@@ -20,8 +20,10 @@ def basic_params():
         start_token = 1, # <GO> index
         end_token = 2, # <EOS> index
 
+        attn = 'normed_bahdanau',
+
         # learning parameters
-        batch_size = 64,
+        batch_size = 32,
         learning_rate = 0.001,
         decay_step = None,
         decay_rate = 0.5

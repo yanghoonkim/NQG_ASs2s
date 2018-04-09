@@ -4,7 +4,33 @@ import tensorflow as tf
 import sys
 sys.path.append('submodule/')
 from mytools import *
+def _attention(params, memory, memory_length):
+    if params['attn'] == 'bahdanau':
+        return tf.contrib.seq2seq.BahdanauAttention(
+                params['hidden_size'],
+                memory,
+                memory_length)
+    elif params['attn'] == 'normed_bahdanau':
+        return tf.contrib.seq2seq.BahdanauAttention(
+                params['hidden_size'],
+                memory,
+                memory_length,
+                normalize = True)
+    
+    elif params['attn'] == 'luong':
+        return tf.contrib.seq2seq.LuongAttention(
+                params['hidden_size'] * 2,
+                memory,
+                memory_length)
 
+    elif params['attn'] == 'scaled_luong':
+        return tf.contrib.seq2seq.LuongAttention(
+                params['hidden_size'] * 2,
+                memory,
+                memory_length,
+                scale = True)
+    else:
+        raise ValueError('Unknown attention mechanism : %s' %params['attn'])
 
 def q_generation(features, labels, mode, params):
 
@@ -79,9 +105,7 @@ def q_generation(features, labels, mode, params):
         attention_states = encoder_outputs
 
         # Create an attention mechanism
-        attention_mechanism = tf.contrib.seq2seq.LuongAttention(
-                hidden_size * 2, attention_states,
-                memory_sequence_length=len_s)
+        attention_mechanism = _attention(params, attention_states, len_s)
 
         # Build decoder cell
         decoder_cell = gru_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_dec() for _ in range(params['decoder_layer'])])
