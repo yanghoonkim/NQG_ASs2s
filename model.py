@@ -7,12 +7,12 @@ from mytools import *
 def _attention(params, memory, memory_length):
     if params['attn'] == 'bahdanau':
         return tf.contrib.seq2seq.BahdanauAttention(
-                params['hidden_size'],
+                params['hidden_size']/2,
                 memory,
                 memory_length)
     elif params['attn'] == 'normed_bahdanau':
         return tf.contrib.seq2seq.BahdanauAttention(
-                params['hidden_size'],
+                params['hidden_size']/2,
                 memory,
                 memory_length,
                 normalize = True)
@@ -63,17 +63,17 @@ def q_generation(features, labels, mode, params):
             embd_q = embed_op(question, params, name = 'embedding')
 
         # Build encoder cell
-        def gru_cell_enc():
-            cell = tf.nn.rnn_cell.GRUCell(hidden_size)
+        def lstm_cell_enc():
+            cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size)
             return tf.contrib.rnn.DropoutWrapper(cell, 
                     input_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
-        def gru_cell_dec():
-            cell = tf.nn.rnn_cell.GRUCell(hidden_size * 2)
+        def lstm_cell_dec():
+            cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size * 2)
             return tf.contrib.rnn.DropoutWrapper(cell,
                     input_keep_prob = 1 - params['rnn_dropout'] if mode == tf.estimator.ModeKeys.TRAIN else 1)
 
-        encoder_cell_fw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_enc() for _ in range(params['encoder_layer'])])
-        encoder_cell_bw = gru_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_enc() for _ in range(params['encoder_layer'])])
+        encoder_cell_fw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
+        encoder_cell_bw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
 
 
         # Run Dynamic RNN
@@ -93,8 +93,10 @@ def q_generation(features, labels, mode, params):
                 dtype = dtype)
 
         encoder_outputs = tf.concat(encoder_outputs, -1)
-        encoder_state = tf.concat(encoder_state, -1) if type(encoder_state[0]) is not tuple else tuple(tf.concat([state_fw, state_bw], -1) for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]))
-        
+        #encoder_state = tf.concat(encoder_state, -1) if type(encoder_state[0]) is not tuple else tuple(tf.concat([state_fw, state_bw], -1) for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]))
+        encoder_state_c = tf.concat([encoder_state[0].c, encoder_state[1].c], axis = 1)
+        encoder_state_h = tf.concat([encoder_state[0].h, encoder_state[1].h], axis = 1)
+        encoder_state = tf.contrib.rnn.LSTMStateTuple(c = encoder_state_c, h = encoder_state_h)
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
         embedding_q = tf.get_variable('embedding')
@@ -108,7 +110,7 @@ def q_generation(features, labels, mode, params):
         attention_mechanism = _attention(params, attention_states, len_s)
 
         # Build decoder cell
-        decoder_cell = gru_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([gru_cell_dec() for _ in range(params['decoder_layer'])])
+        decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
@@ -165,12 +167,12 @@ def q_generation(features, labels, mode, params):
     current_length = tf.shape(logits_q)[1]
     def concat_padding():
         num_pad = maxlen_q - current_length
-        padding = tf.zeros([batch_size, num_pad, params['voca_size']], dtype = dtype)
+        padding = tf.zeros([batch_size, num_pad, voca_size], dtype = dtype)
 
         return tf.concat([logits_q, padding], axis = 1)
 
     def slice_to_maxlen():
-        return tf.slice(logits_q, [0,0,0], [batch_size, maxlen_q, params['voca_size']])
+        return tf.slice(logits_q, [0,0,0], [batch_size, maxlen_q, voca_size])
 
     logits_q = tf.cond(current_length < maxlen_q,
             concat_padding,

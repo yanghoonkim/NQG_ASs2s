@@ -33,6 +33,22 @@ xinyadu_glove(){
 	PARAMS=basic_params
 }
 
+squad(){
+	TRAIN_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/train_sentence.npy'
+	TRAIN_QUESTION='../qa_generation/data/squad/processed/qa_from_s/train_question.npy'
+	TRAIN_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/train_length_sentence.npy'
+	TRAIN_LENGTH_Q='../qa_generation/data/squad/processed/qa_from_s/train_length_question.npy'
+	DEV_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/dev_sentence.npy'
+	DEV_QUESTION='../qa_generation/data/squad/processed/qa_from_s/dev_question.npy'
+	DEV_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/dev_length_sentence.npy'
+	DEV_LENGTH_Q='../qa_generation/data/squad/processed/qa_from_s/dev_length_question.npy'
+	TEST_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/dev_sentence.npy'
+	TEST_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/dev_length_sentence.npy'
+	PRED_DIR='result/squad.txt'
+	PARAMS=basic_params
+}
+
+
 # Pass the first argument as the name of dataset
 # Pass the second argument as mode
 # Pass the third argument to control GPU usage

@@ -7,7 +7,7 @@ def basic_params():
         voca_size = 34004,
         embedding = 'data/squad/processed/xinyadu_processed/glove840b_xinyadu_vocab300.npy',
         embedding_trainable = False,
-        hidden_size = 600,
+        hidden_size = 512,
         encoder_layer = 1,
         decoder_layer = 2,
         
