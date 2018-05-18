@@ -5,11 +5,11 @@ def basic_params():
     return tf.contrib.training.HParams(
         dtype = tf.float32,
         voca_size = 34004,
-        embedding = 'data/squad/processed/xinyadu_processed/glove840b_xinyadu_vocab300.npy',
+        embedding = '../qa_generation/data/squad/processed/qa_from_s/glove840b_qafroms_vocab300.npy',
         embedding_trainable = False,
         hidden_size = 512,
         encoder_layer = 1,
-        decoder_layer = 2,
+        decoder_layer = 1,
         
         maxlen_s = 60,
         maxlen_q_train = 32,

@@ -41,6 +41,9 @@ def q_generation(features, labels, mode, params):
     
     sentence = features['s'] # [batch, length]
     len_s = features['len_s']
+
+    answer = features['a']
+    len_a = features['len_a']
     
     # batch_size should not be specified
     # if fixed, then the redundant eval_data will make error
@@ -59,6 +62,7 @@ def q_generation(features, labels, mode, params):
         # Embedded inputs
         # Same name == embedding sharing
         embd_s = embed_op(sentence, params, name = 'embedding')
+        embd_a = embed_op(answer, params, name = 'embedding')
         if question is not None:
             embd_q = embed_op(question, params, name = 'embedding')
 
@@ -74,6 +78,9 @@ def q_generation(features, labels, mode, params):
 
         encoder_cell_fw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
         encoder_cell_bw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
+
+        answer_cell_fw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
+        answer_cell_bw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
 
 
         # Run Dynamic RNN
@@ -97,6 +104,20 @@ def q_generation(features, labels, mode, params):
         encoder_state_c = tf.concat([encoder_state[0].c, encoder_state[1].c], axis = 1)
         encoder_state_h = tf.concat([encoder_state[0].h, encoder_state[1].h], axis = 1)
         encoder_state = tf.contrib.rnn.LSTMStateTuple(c = encoder_state_c, h = encoder_state_h)
+
+        answer_outputs, answer_state = tf.nn.bidirectional_dynamic_rnn(
+                answer_cell_fw,
+                answer_cell_bw,
+                inputs = embd_a,
+                sequence_length = len_a,
+                dtype = dtype,
+                scope = 'answer_scope')
+
+        answer_outputs = tf.concat(answer_outputs, -1)
+        answer_state_c = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
+        answer_state_h = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
+        answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
+
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
         embedding_q = tf.get_variable('embedding')
@@ -115,7 +136,7 @@ def q_generation(features, labels, mode, params):
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
                 attention_layer_size=hidden_size,
-                initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
+                initial_cell_state = answer_state if params['encoder_layer'] == params['decoder_layer'] else None)
 
         decoder_cell = tf.contrib.rnn.OutputProjectionWrapper(decoder_cell, voca_size)
 
