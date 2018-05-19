@@ -14,16 +14,20 @@ def basic_params():
         maxlen_s = 60,
         maxlen_q_train = 32,
         maxlen_q_dev = 27,
-
+            
         rnn_dropout = 0.4,
-
+        
         start_token = 1, # <GO> index
         end_token = 2, # <EOS> index
+        
+        num_heads = 1,
+        context_depth = 512,
+        attn_dropout = 0.4,
 
         attn = 'normed_bahdanau',
 
         # learning parameters
-        batch_size = 32,
+        batch_size = 256,
         learning_rate = 0.001,
         decay_step = None,
         decay_rate = 0.5

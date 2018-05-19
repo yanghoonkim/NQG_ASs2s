@@ -118,6 +118,34 @@ def q_generation(features, labels, mode, params):
         answer_state_h = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
         answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
 
+
+    # Generate post-context vector for sentence and answer
+    with tf.variable_scope('ContextScope'):
+        maxlen_s = tf.shape(sentence)[-1]
+        maxlen_a = tf.shape(answer)[-1]
+
+        bias_s = attention_bias_ignore_padding(len_s, maxlen_s)
+        bias_a = attention_bias_ignore_padding(len_a, maxlen_a)
+
+        context_s = multihead_attention(
+                answer_outputs, 
+                encoder_outputs, 
+                bias = bias_s, 
+                num_heads = params['num_heads'],
+                output_depth = params['context_depth'],
+                dropout_rate = params['attn_dropout']
+                )
+        context_a = multihead_attention(
+                encoder_outputs,
+                answer_outputs,
+                bias = bias_a,
+                num_heads = params['num_heads'],
+                output_depth = params['context_depth'],
+                dropout_rate = params['attn_dropout']
+                )
+
+
+
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
         embedding_q = tf.get_variable('embedding')
@@ -125,7 +153,7 @@ def q_generation(features, labels, mode, params):
     # Rnn decoding of sentence with attention 
     with tf.variable_scope('QuestionGeneration'):
         # Memory for attention
-        attention_states = encoder_outputs
+        attention_states = context_s
 
         # Create an attention mechanism
         attention_mechanism = _attention(params, attention_states, len_s)

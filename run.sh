@@ -62,7 +62,7 @@ $1
 $2
 
 TRAIN_STEPS=200000
-NUM_EPOCHS=10
+NUM_EPOCHS=5
 MODEL_DIR=./store_model/$3
 
 python main.py \
