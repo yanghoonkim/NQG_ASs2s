@@ -54,16 +54,38 @@ squad(){
 	PARAMS=basic_params
 }
 
+squadd(){
+	TRAIN_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/train_sentence.npy'
+	TRAIN_QUESTION='../qa_generation/data/squad/processed/qa_from_s/train_question.npy'
+	TRAIN_ANSWER='../qa_generation/data/squad/processed/qa_from_s/train_answer.npy'
+	TRAIN_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/train_length_sentence.npy'
+	TRAIN_LENGTH_Q='../qa_generation/data/squad/processed/qa_from_s/train_length_question.npy'
+	TRAIN_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s/train_length_answer.npy'
+	DEV_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/dev_sentence.npy'
+	DEV_QUESTION='../qa_generation/data/squad/processed/qa_from_s/dev_question.npy'
+	DEV_ANSWER='../qa_generation/data/squad/processed/qa_from_s/dev_answer.npy'
+	DEV_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/dev_length_sentence.npy'
+	DEV_LENGTH_Q='../qa_generation/data/squad/processed/qa_from_s/dev_length_question.npy'
+	DEV_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s/dev_length_answer.npy'
+	TEST_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/dev_sentence.npy'
+	TEST_ANSWER='../qa_generation/data/squad/processed/qa_from_s/dev_answer.npy'
+	TEST_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/dev_length_sentence.npy'
+	TEST_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s/dev_length_answer.npy'
+	PRED_DIR='result/squad.txt'
+	PARAMS=other_params
+}
+
 
 # Pass the first argument as the name of dataset
 # Pass the second argument as mode
-# Pass the third argument to control GPU usage
+# Pass the third argument to name the weight set
+# Pass the fourth arqugment to adjust training epoch
 $1
 $2
 
 TRAIN_STEPS=200000
-NUM_EPOCHS=5
 MODEL_DIR=./store_model/$3
+NUM_EPOCHS=$4
 
 python main.py \
 	--mode=$MODE \

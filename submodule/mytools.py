@@ -3,7 +3,7 @@
 # Tensorflow 1.4
 # 2018.03.01
 
-
+import nltk
 import numpy as np
 import tensorflow as tf 
 
@@ -137,6 +137,32 @@ def attention_bias_ignore_padding(memory_length, maxlen):
     memory_padding = tf.equal(mask, 0)
     ret = tf.to_float(memory_padding) * -1e9
     return tf.expand_dims(tf.expand_dims(ret, 1), 1)
+
+
+def bleu_score(labels, predictions,
+               weights=None, metrics_collections=None,
+               updates_collections=None, name=None):
+
+    def _nltk_blue_score(labels, predictions):
+
+        # slice after <eos>
+        predictions = predictions.tolist()
+        for i in range(len(predictions)):
+            prediction = predictions[i]
+            if 2 in prediction: # 2: EOS
+                predictions[i] = prediction[:prediction.index(2)+1]
+
+        labels = [
+            [[w_id for w_id in label if w_id != 0]] # 0: PAD
+            for label in labels.tolist()]
+        predictions = [
+            [w_id for w_id in prediction]
+            for prediction in predictions]
+
+        return float(nltk.translate.bleu_score.corpus_bleu(labels, predictions))
+
+    score = tf.py_func(_nltk_blue_score, (labels, predictions), tf.float64)
+    return tf.metrics.mean(score * 100)
 
 
 

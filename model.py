@@ -79,8 +79,8 @@ def q_generation(features, labels, mode, params):
         encoder_cell_fw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
         encoder_cell_bw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
 
-        answer_cell_fw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
-        answer_cell_bw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
+        answer_cell_fw = lstm_cell_enc()
+        answer_cell_bw = lstm_cell_enc()
 
 
         # Run Dynamic RNN
@@ -100,10 +100,22 @@ def q_generation(features, labels, mode, params):
                 dtype = dtype)
 
         encoder_outputs = tf.concat(encoder_outputs, -1)
+        # GRU case
         #encoder_state = tf.concat(encoder_state, -1) if type(encoder_state[0]) is not tuple else tuple(tf.concat([state_fw, state_bw], -1) for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]))
-        encoder_state_c = tf.concat([encoder_state[0].c, encoder_state[1].c], axis = 1)
-        encoder_state_h = tf.concat([encoder_state[0].h, encoder_state[1].h], axis = 1)
-        encoder_state = tf.contrib.rnn.LSTMStateTuple(c = encoder_state_c, h = encoder_state_h)
+        
+        if params['encoder_layer'] == 1:
+            encoder_state_c = tf.concat([encoder_state[0].c, encoder_state[1].c], axis = 1)
+            encoder_state_h = tf.concat([encoder_state[0].h, encoder_state[1].h], axis = 1)
+            encoder_state = tf.contrib.rnn.LSTMStateTuple(c = encoder_state_c, h = encoder_state_h)
+
+        else:
+            _encoder_state = list()
+            for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]):
+                partial_state_c = tf.concat([state_fw.c, state_bw.c], axis = 1)
+                partial_state_h = tf.concat([state_fw.h, state_bw.h], axis = 1)
+                partial_state = tf.contrib.rnn.LSTMStateTuple(c = partial_state_c, h = partial_state_h)
+                _encoder_state.append(partial_state)
+            encoder_state = tuple(_encoder_state)
 
         answer_outputs, answer_state = tf.nn.bidirectional_dynamic_rnn(
                 answer_cell_fw,
@@ -164,7 +176,7 @@ def q_generation(features, labels, mode, params):
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
                 attention_layer_size=hidden_size,
-                initial_cell_state = answer_state if params['encoder_layer'] == params['decoder_layer'] else None)
+                initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
 
         decoder_cell = tf.contrib.rnn.OutputProjectionWrapper(decoder_cell, voca_size)
 
@@ -241,7 +253,9 @@ def q_generation(features, labels, mode, params):
     loss = loss_q 
 
     # eval_metric for estimator
-    eval_metric_ops = None
+    eval_metric_ops = {
+            'bleu' : bleu_score(label_q, predictions_q)
+            }
 
     # Summary
     tf.summary.scalar('loss_question', loss_q)

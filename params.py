@@ -8,8 +8,8 @@ def basic_params():
         embedding = '../qa_generation/data/squad/processed/qa_from_s/glove840b_qafroms_vocab300.npy',
         embedding_trainable = False,
         hidden_size = 512,
-        encoder_layer = 1,
-        decoder_layer = 1,
+        encoder_layer = 2,
+        decoder_layer = 2,
         
         maxlen_s = 60,
         maxlen_q_train = 32,
@@ -35,16 +35,14 @@ def basic_params():
     
 def other_params():
     hparams = basic_params()
-    hparams.voca_size = 30004
-    hparams.embedding = None
-    hparams.embedding_trainable = True
-    hparams.hidden_size = 300
+    hparams.embedding_trainable = False
+    hparams.hidden_size = 800
     hparams.encoder_layer = 1
-    haprams.decoder_layer = 1
+    hparams.decoder_layer = 1
 
-    hparams.rnn_dropout = 0.3
+    hparams.num_heads = 1
+    hparams.context_depth = 800
+    
+    hparams.batch_size = 256
 
-    hparams.batch_size = 128
-
-    hparams.add_hparam('decay', 0.4) # learning rate decay factor
     return hparams
