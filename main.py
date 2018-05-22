@@ -18,7 +18,7 @@ def remove_eos(sentence, eos = '<EOS>', pad = '<PAD>'):
 
 def write_result(predict_results):
     print 'Load dic file...'
-    with open('data/squad/processed/xinyadu_processed/vocab_xinyadu.dic') as dic:
+    with open('../qa_generation/data/squad/processed/qa_from_s/vocab_qa_from_s.dic') as dic:
         dic_file = pkl.load(dic)
     reversed_dic = dict((y,x) for x,y in dic_file.iteritems())
     
@@ -29,25 +29,12 @@ def write_result(predict_results):
                 output = predict_results.next()
                 indices = [reversed_dic[index] for index in output['question']]
                 sentence = ' '.join(indices)
-                sentence = remove_eos(sentence)
+                sentence = remove_eos(sentence.encode('utf-8'))
                 f.write(sentence)
 
             except StopIteration:
                 break
 
-def print_result(predict_results):
-    with open('data/squad/processed/xinyadu_processed/vocab_xinyadu.dic') as dic:
-        dic_file = pkl.load(dic)
-    reversed_dic = pkl.load(dic)
-
-    while True:
-        try:
-            output = predict_results.next()
-            indices = [reversed_dic[index] for index in output['question']]
-            sentence = ' '.join(indices)
-            print sentence
-        except StopIteration:
-            break
     
 def main(unused):
     

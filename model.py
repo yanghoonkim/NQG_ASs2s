@@ -93,10 +93,21 @@ def q_generation(features, labels, mode, params):
                 dtype = dtype)
 
         encoder_outputs = tf.concat(encoder_outputs, -1)
-        #encoder_state = tf.concat(encoder_state, -1) if type(encoder_state[0]) is not tuple else tuple(tf.concat([state_fw, state_bw], -1) for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]))
-        encoder_state_c = tf.concat([encoder_state[0].c, encoder_state[1].c], axis = 1)
-        encoder_state_h = tf.concat([encoder_state[0].h, encoder_state[1].h], axis = 1)
-        encoder_state = tf.contrib.rnn.LSTMStateTuple(c = encoder_state_c, h = encoder_state_h)
+
+        if params['encoder_layer'] == 1:
+            encoder_state_c = tf.concat([encoder_state[0].c, encoder_state[1].c], axis = 1)
+            encoder_state_h = tf.concat([encoder_state[0].h, encoder_state[1].h], axis = 1)
+            encoder_state = tf.contrib.rnn.LSTMStateTuple(c = encoder_state_c, h = encoder_state_h)
+
+        else:
+            _encoder_state = list()
+            for state_fw, state_bw in zip(encoder_state[0], encoder_state[1]):
+                partial_state_c = tf.concat([state_fw.c, state_bw.c], axis = 1)
+                partial_state_h = tf.concat([state_fw.h, state_bw.h], axis = 1)
+                partial_state = tf.contrib.rnn.LSTMStateTuple(c = partial_state_c, h = partial_state_h)
+                _encoder_state.append(partial_state)
+            encoder_state = tuple(_encoder_state)
+
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
         embedding_q = tf.get_variable('embedding')
@@ -192,7 +203,9 @@ def q_generation(features, labels, mode, params):
     loss = loss_q 
 
     # eval_metric for estimator
-    eval_metric_ops = None
+    eval_metric_ops = {
+            'bleu' : bleu_score(label_q, predictions_q)
+            }
 
     # Summary
     tf.summary.scalar('loss_question', loss_q)
