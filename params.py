@@ -8,7 +8,7 @@ def basic_params():
         embedding = '../qa_generation/data/squad/processed/qa_from_s/glove840b_qafroms_vocab300.npy',
         embedding_trainable = False,
         hidden_size = 512,
-        encoder_layer = 2,
+        encoder_layer = 1,
         decoder_layer = 2,
         
         maxlen_s = 60,
@@ -27,7 +27,7 @@ def basic_params():
         attn = 'normed_bahdanau',
 
         # learning parameters
-        batch_size = 256,
+        batch_size = 200,
         learning_rate = 0.001,
         decay_step = None,
         decay_rate = 0.5

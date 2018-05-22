@@ -95,11 +95,13 @@ def q_generation(features, labels, mode, params):
 
         encoder_cell_fw = tf.contrib.seq2seq.AttentionWrapper(encoder_cell_fw, attention_answer_fw,
                 attention_layer_size = hidden_size,
-                initial_cell_state = None)
+                initial_cell_state = None, 
+                name = 'encoder_cell_fw')
 
         encoder_cell_bw = tf.contrib.seq2seq.AttentionWrapper(encoder_cell_bw, attention_answer_bw, 
                 attention_layer_size = hidden_size,
-                initial_cell_state = None)
+                initial_cell_state = None,
+                name = 'encoder_cell_bw')
 
         encoder_outputs_fw, encoder_state_fw = tf.nn.dynamic_rnn(
                 encoder_cell_fw,
@@ -107,20 +109,20 @@ def q_generation(features, labels, mode, params):
                 sequence_length = len_s,
                 dtype = dtype)
 
-        inputs_reverse = _reverse(embd_s, seq_lengths = len_s,
+        inputs_reverse = reverse(embd_s, seq_lengths = len_s,
                 seq_dim = 1, batch_dim = 0)
         
-        tmp, output_state_bw = tf.nn.dynamic_rnn(
+        tmp, encoder_state_bw = tf.nn.dynamic_rnn(
                 encoder_cell_bw, 
                 inputs = inputs_reverse,
                 sequence_length = len_s,
                 dtype = dtype)
 
-        encoder_outputs_bw = _reverse(tmp, seq_lengths = len_s,
+        encoder_outputs_bw = reverse(tmp, seq_lengths = len_s,
                 seq_dim = 1, batch_dim = 0)
-        encoder_state = (encoder_state_fw, encoder_state_bw)
+        encoder_state = (encoder_state_fw.cell_state, encoder_state_bw.cell_state)
 
-        encoder_outputs = tf.concat(encoder_outputs, -1)
+        encoder_outputs = tf.concat([encoder_outputs_fw, encoder_outputs_bw], -1)
         
         if params['encoder_layer'] == 1:
             encoder_state_c = tf.concat([encoder_state[0].c, encoder_state[1].c], axis = 1)
@@ -145,7 +147,7 @@ def q_generation(features, labels, mode, params):
     # Rnn decoding of sentence with attention 
     with tf.variable_scope('QuestionGeneration'):
         # Memory for attention
-        attention_states = encoder_state
+        attention_states = encoder_outputs
 
         # Create an attention mechanism
         attention_mechanism = _attention(params, attention_states, len_s)

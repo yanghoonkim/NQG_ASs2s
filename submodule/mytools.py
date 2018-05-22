@@ -164,8 +164,13 @@ def bleu_score(labels, predictions,
     score = tf.py_func(_nltk_blue_score, (labels, predictions), tf.float64)
     return tf.metrics.mean(score * 100)
 
+def unknown_shape(ndims = None):
+    if ndims is None:
+        return tf.TensorShape(None)
+    else:
+        return tf.TensorShape([tf.Dimension(None) * ndims])
 
-def _reverse_seq(input_seq, lengths):
+def reverse_seq(input_seq, lengths):
   """Reverse a list of Tensors up to specified lengths.
   Args:
     input_seq: Sequence of seq_len tensors of dimension (batch_size, n_features)
@@ -179,39 +184,39 @@ def _reverse_seq(input_seq, lengths):
   if lengths is None:
     return list(reversed(input_seq))
 
-  flat_input_seq = tuple(nest.flatten(input_) for input_ in input_seq)
+  flat_input_seq = tuple(tf.contrib.framework.nest.flatten(input_) for input_ in input_seq)
 
   flat_results = [[] for _ in range(len(input_seq))]
   for sequence in zip(*flat_input_seq):
-    input_shape = tensor_shape.unknown_shape(
+    input_shape = unknown_shape(
         ndims=sequence[0].get_shape().ndims)
     for input_ in sequence:
       input_shape.merge_with(input_.get_shape())
       input_.set_shape(input_shape)
 
     # Join into (time, batch_size, depth)
-    s_joined = array_ops.stack(sequence)
+    s_joined = tf.stack(sequence)
 
     # Reverse along dimension 0
-    s_reversed = array_ops.reverse_sequence(s_joined, lengths, 0, 1)
+    s_reversed = tf.reverse_sequence(s_joined, lengths, 0, 1)
     # Split again into list
-    result = array_ops.unstack(s_reversed)
+    result = tf.unstack(s_reversed)
     for r, flat_result in zip(result, flat_results):
       r.set_shape(input_shape)
       flat_result.append(r)
 
-  results = [nest.pack_sequence_as(structure=input_, flat_sequence=flat_result)
+  results = [tf.contrib.framework.nest.pack_sequence_as(structure=input_, flat_sequence=flat_result)
              for input_, flat_result in zip(input_seq, flat_results)]
   return results
 
 
-def _reverse(input_, seq_lengths, seq_dim, batch_dim):
+def reverse(input_, seq_lengths, seq_dim, batch_dim):
     if seq_lengths is not None:
-        return array_ops.reverse_sequence(
+        return tf.reverse_sequence(
             input=input_, seq_lengths=seq_lengths,
             seq_dim=seq_dim, batch_dim=batch_dim)
     else:
-        return array_ops.reverse(input_, axis=[seq_dim])
+        return tf.reverse(input_, axis=[seq_dim])
 
 
 
