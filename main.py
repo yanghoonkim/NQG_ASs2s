@@ -29,8 +29,8 @@ def write_result(predict_results):
                 output = predict_results.next()
                 indices = [reversed_dic[index] for index in output['question']]
                 sentence = ' '.join(indices)
-                sentence = remove_eos(sentence.encode('utf-8'))
-                f.write(sentence)
+                sentence = remove_eos(sentence)
+                f.write(sentence.encode('utf-8'))
 
             except StopIteration:
                 break
@@ -56,20 +56,24 @@ def main(unused):
     # Load training data
     train_sentence = np.load(FLAGS.train_sentence) # train_data
     train_question = np.load(FLAGS.train_question) # train_label
+    train_answer = np.load(FLAGS.train_answer)
     train_sentence_length = np.load(FLAGS.train_sentence_length)
     train_question_length = np.load(FLAGS.train_question_length)
+    train_answer_length = np.load(FLAGS.train_answer_length)
 
     # Data shuffling for training data
     permutation = np.random.permutation(len(train_sentence))
     train_sentence = train_sentence[permutation]
     train_question = train_question[permutation]
+    train_answer = train_answer[permutation]
     train_sentence_length = train_sentence_length[permutation]
     train_question_length = train_question_length[permutation]
+    train_answer_length = train_answer_length[permutation]
     
     # Training input function for estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"s": train_sentence, 'q': train_question,
-            'len_s': train_sentence_length, 'len_q': train_question_length},
+            x={"s": train_sentence, 'q': train_question, 'a': train_answer,
+                'len_s': train_sentence_length, 'len_q': train_question_length, 'len_a': train_answer_length},
         y=train_sentence, # useless value
         batch_size = model_params['batch_size'],
         num_epochs=FLAGS.num_epochs,
@@ -78,14 +82,16 @@ def main(unused):
     # Load evaluation data
     eval_sentence = np.load(FLAGS.eval_sentence)
     eval_question = np.load(FLAGS.eval_question)
+    eval_answer = np.load(FLAGS.eval_answer)
     eval_sentence_length = np.load(FLAGS.eval_sentence_length)
     eval_question_length = np.load(FLAGS.eval_question_length)
+    eval_answer_length = np.load(FLAGS.eval_answer_length)
 
 
     # Evaluation input function for estimator
     eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x = {"s": eval_sentence, 'q': eval_question,
-            'len_s': eval_sentence_length, 'len_q': eval_question_length},
+            x = {"s": eval_sentence, 'q': eval_question, 'a': eval_answer,
+                'len_s': eval_sentence_length, 'len_q': eval_question_length, 'len_a': eval_answer_length},
         y = None,
         batch_size = model_params['batch_size'],
         num_epochs=1,
@@ -109,11 +115,14 @@ def main(unused):
     else: # 'pred'
         # Load test data
         test_sentence = np.load(FLAGS.test_sentence)
+        test_answer = np.load(FLAGS.test_answer)
         test_sentence_length = np.load(FLAGS.test_sentence_length)
+        test_answer_length = np.load(FLAGS.test_answer_length)
 
         # prediction input function for estimator
         pred_input_fn = tf.estimator.inputs.numpy_input_fn(
-                x = {"s" : test_sentence, 'len_s': test_sentence_length},
+                x = {"s" : test_sentence, 'a': test_answer, 
+                    'len_s': test_sentence_length, 'len_a': test_answer_length},
                 y = None,
                 batch_size = model_params['batch_size'],
                 num_epochs = 1,
@@ -131,14 +140,20 @@ if __name__ == '__main__':
     parser.add_argument('--mode', type = str, help = 'train, eval')
     parser.add_argument('--train_sentence', type = str, default= '', help = 'path to the training sentence.')
     parser.add_argument('--train_question', type = str, default = '', help = 'path to the training question.')
+    parser.add_argument('--train_answer', type = str, default = '', help = 'path to the training answer')
     parser.add_argument('--train_sentence_length', type = str, default = '')
     parser.add_argument('--train_question_length', type = str, default = '')
+    parser.add_argument('--train_answer_length', type = str, default = '')
     parser.add_argument('--eval_sentence', type = str, default = '', help = 'path to the evaluation sentence. ')
     parser.add_argument('--eval_question', type = str, default = '', help = 'path to the evaluation question.')
+    parser.add_argument('--eval_answer', type = str, default = '', help = 'path to the evaluation answer')
     parser.add_argument('--eval_sentence_length', type = str, default = '')
     parser.add_argument('--eval_question_length', type = str, default = '')
+    parser.add_argument('--eval_answer_length', type = str, default ='')
     parser.add_argument('--test_sentence', type = str, default = '', help = 'path to the test sentence.')
+    parser.add_argument('--test_answer', type = str, default = '', help = 'path to the test answer')
     parser.add_argument('--test_sentence_length', type = str, default = '')
+    parser.add_argument('--test_answer_length', type = str, default = '')
     parser.add_argument('--model_dir', type = str, help = 'path to save the model')
     parser.add_argument('--pred_dir', type = str, help = 'path to save the predictions')
     parser.add_argument('--params', type = str, help = 'parameter setting')

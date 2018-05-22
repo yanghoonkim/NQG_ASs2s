@@ -41,6 +41,9 @@ def q_generation(features, labels, mode, params):
     
     sentence = features['s'] # [batch, length]
     len_s = features['len_s']
+
+    answer = features['a']
+    len_a = features['len_a']
     
     # batch_size should not be specified
     # if fixed, then the redundant eval_data will make error
@@ -59,6 +62,7 @@ def q_generation(features, labels, mode, params):
         # Embedded inputs
         # Same name == embedding sharing
         embd_s = embed_op(sentence, params, name = 'embedding')
+        embd_a = embed_op(answer, params, name = 'embedding')
         if question is not None:
             embd_q = embed_op(question, params, name = 'embedding')
 
@@ -74,6 +78,9 @@ def q_generation(features, labels, mode, params):
 
         encoder_cell_fw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
         encoder_cell_bw = lstm_cell_enc() if params['encoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['encoder_layer'])])
+
+        answer_cell_fw = lstm_cell_enc()
+        answer_cell_bw = lstm_cell_enc()
 
 
         # Run Dynamic RNN
@@ -108,6 +115,47 @@ def q_generation(features, labels, mode, params):
                 _encoder_state.append(partial_state)
             encoder_state = tuple(_encoder_state)
 
+        answer_outputs, answer_state = tf.nn.bidirectional_dynamic_rnn(
+                answer_cell_fw,
+                answer_cell_bw,
+                inputs = embd_a,
+                sequence_length = len_a,
+                dtype = dtype,
+                scope = 'answer_scope')
+
+        answer_outputs = tf.concat(answer_outputs, -1)
+        answer_state_c = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
+        answer_state_h = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
+        answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
+
+
+    # Generate post-context vector for sentence and answer
+    with tf.variable_scope('ContextScope'):
+        maxlen_s = tf.shape(sentence)[-1]
+        maxlen_a = tf.shape(answer)[-1]
+
+        bias_s = attention_bias_ignore_padding(len_s, maxlen_s)
+        bias_a = attention_bias_ignore_padding(len_a, maxlen_a)
+
+        context_s = multihead_attention(
+                answer_outputs, 
+                encoder_outputs, 
+                bias = bias_s, 
+                num_heads = params['num_heads'],
+                output_depth = params['context_depth'],
+                dropout_rate = params['attn_dropout']
+                )
+        context_a = multihead_attention(
+                encoder_outputs,
+                answer_outputs,
+                bias = bias_a,
+                num_heads = params['num_heads'],
+                output_depth = params['context_depth'],
+                dropout_rate = params['attn_dropout']
+                )
+
+
+
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
         embedding_q = tf.get_variable('embedding')
@@ -115,7 +163,7 @@ def q_generation(features, labels, mode, params):
     # Rnn decoding of sentence with attention 
     with tf.variable_scope('QuestionGeneration'):
         # Memory for attention
-        attention_states = encoder_outputs
+        attention_states = context_s
 
         # Create an attention mechanism
         attention_mechanism = _attention(params, attention_states, len_s)
