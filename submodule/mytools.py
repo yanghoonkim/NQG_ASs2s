@@ -163,11 +163,3 @@ def bleu_score(labels, predictions,
 
     score = tf.py_func(_nltk_blue_score, (labels, predictions), tf.float64)
     return tf.metrics.mean(score * 100)
-<<<<<<< HEAD
-=======
-
-
-
-
-
->>>>>>> given_answer
