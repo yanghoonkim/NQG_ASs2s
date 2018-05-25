@@ -4,6 +4,8 @@ import tensorflow as tf
 import sys
 sys.path.append('submodule/')
 from mytools import *
+import attention_wrapper_mod
+
 def _attention(params, memory, memory_length):
     if params['attn'] == 'bahdanau':
         return tf.contrib.seq2seq.BahdanauAttention(
@@ -82,16 +84,6 @@ def q_generation(features, labels, mode, params):
         answer_cell_fw = lstm_cell_enc()
         answer_cell_bw = lstm_cell_enc()
 
-
-        # Run Dynamic RNN
-        #   encoder_outputs: [max_time, batch_size, num_units]
-        #   encoder_state: last hidden state of encoder, [batch_size, num_units]
-        #encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
-        #    encoder_cell, embd_s,
-        #    sequence_length=len_s,
-        #    dtype = tf.float32    
-        #    )
-
         encoder_outputs, encoder_state = tf.nn.bidirectional_dynamic_rnn(
                 encoder_cell_fw,
                 encoder_cell_bw,
@@ -129,33 +121,6 @@ def q_generation(features, labels, mode, params):
         answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
 
 
-    # Generate post-context vector for sentence and answer
-    with tf.variable_scope('ContextScope'):
-        maxlen_s = tf.shape(sentence)[-1]
-        maxlen_a = tf.shape(answer)[-1]
-
-        bias_s = attention_bias_ignore_padding(len_s, maxlen_s)
-        bias_a = attention_bias_ignore_padding(len_a, maxlen_a)
-
-        context_s = multihead_attention(
-                answer_outputs, 
-                encoder_outputs, 
-                bias = bias_s, 
-                num_heads = params['num_heads'],
-                output_depth = params['context_depth'],
-                dropout_rate = params['attn_dropout']
-                )
-        context_a = multihead_attention(
-                encoder_outputs,
-                answer_outputs,
-                bias = bias_a,
-                num_heads = params['num_heads'],
-                output_depth = params['context_depth'],
-                dropout_rate = params['attn_dropout']
-                )
-
-
-
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
         embedding_q = tf.get_variable('embedding')
@@ -163,16 +128,18 @@ def q_generation(features, labels, mode, params):
     # Rnn decoding of sentence with attention 
     with tf.variable_scope('QuestionGeneration'):
         # Memory for attention
-        attention_states = context_s
+        attention_states_s = encoder_outputs
+        attention_states_a = answer_outputs
 
         # Create an attention mechanism
-        attention_mechanism = _attention(params, attention_states, len_s)
+        attention_mechanism_s = _attention(params, attention_states_s, len_s)
+        attention_mechanism_a = _attention(params, attention_states_a, len_a)
 
         # Build decoder cell
         decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
 
-        decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
-                decoder_cell, attention_mechanism,
+        decoder_cell = attention_wrapper_mod.PairseqWrapper(
+                decoder_cell, attention_mechanism_s, attention_mechanism_a,
                 attention_layer_size=hidden_size,
                 initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
 

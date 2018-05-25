@@ -42,6 +42,8 @@ from tensorflow.python.ops import tensor_array_ops
 from tensorflow.python.ops import variable_scope
 from tensorflow.python.util import nest
 
+import tensorflow as tf
+
 
 __all__ = [
     "AttentionMechanism",
@@ -149,7 +151,7 @@ class _BaseAttentionMechanism(AttentionMechanism):
                memory_sequence_length=None,
                memory_layer=None,
                check_inner_dims_defined=True,
-               score_mask_value=None,
+               score_mask_value=float("-inf"),
                name=None):
     """Construct base AttentionMechanism class.
 
@@ -187,13 +189,9 @@ class _BaseAttentionMechanism(AttentionMechanism):
           "memory_layer is not a Layer: %s" % type(memory_layer).__name__)
     self._query_layer = query_layer
     self._memory_layer = memory_layer
-    self.dtype = memory_layer.dtype
     if not callable(probability_fn):
       raise TypeError("probability_fn must be callable, saw type: %s" %
                       type(probability_fn).__name__)
-    if score_mask_value is None:
-      score_mask_value = dtypes.as_dtype(
-          self._memory_layer.dtype).as_numpy_dtype(-np.inf)
     self._probability_fn = lambda score, prev: (  # pylint:disable=g-long-lambda
         probability_fn(
             _maybe_mask_score(score, memory_sequence_length, score_mask_value),
@@ -338,8 +336,7 @@ class LuongAttention(_BaseAttentionMechanism):
                memory_sequence_length=None,
                scale=False,
                probability_fn=None,
-               score_mask_value=None,
-               dtype=None,
+               score_mask_value=float("-inf"),
                name="LuongAttention"):
     """Construct the AttentionMechanism mechanism.
 
@@ -358,20 +355,17 @@ class LuongAttention(_BaseAttentionMechanism):
       score_mask_value: (optional) The mask value for score before passing into
         `probability_fn`. The default is -inf. Only used if
         `memory_sequence_length` is not None.
-      dtype: The data type for the memory layer of the attention mechanism.
       name: Name to use when creating ops.
     """
     # For LuongAttention, we only transform the memory layer; thus
     # num_units **must** match expected the query depth.
     if probability_fn is None:
       probability_fn = nn_ops.softmax
-    if dtype is None:
-      dtype = dtypes.float32
     wrapped_probability_fn = lambda score, _: probability_fn(score)
     super(LuongAttention, self).__init__(
         query_layer=None,
         memory_layer=layers_core.Dense(
-            num_units, name="memory_layer", use_bias=False, dtype=dtype),
+            num_units, name="memory_layer", use_bias=False),
         memory=memory,
         probability_fn=wrapped_probability_fn,
         memory_sequence_length=memory_sequence_length,
@@ -483,8 +477,7 @@ class BahdanauAttention(_BaseAttentionMechanism):
                memory_sequence_length=None,
                normalize=False,
                probability_fn=None,
-               score_mask_value=None,
-               dtype=None,
+               score_mask_value=float("-inf"),
                name="BahdanauAttention"):
     """Construct the Attention mechanism.
 
@@ -503,20 +496,16 @@ class BahdanauAttention(_BaseAttentionMechanism):
       score_mask_value: (optional): The mask value for score before passing into
         `probability_fn`. The default is -inf. Only used if
         `memory_sequence_length` is not None.
-      dtype: The data type for the query and memory layers of the attention
-        mechanism.
       name: Name to use when creating ops.
     """
     if probability_fn is None:
       probability_fn = nn_ops.softmax
-    if dtype is None:
-      dtype = dtypes.float32
     wrapped_probability_fn = lambda score, _: probability_fn(score)
     super(BahdanauAttention, self).__init__(
         query_layer=layers_core.Dense(
-            num_units, name="query_layer", use_bias=False, dtype=dtype),
+            num_units, name="query_layer", use_bias=False),
         memory_layer=layers_core.Dense(
-            num_units, name="memory_layer", use_bias=False, dtype=dtype),
+            num_units, name="memory_layer", use_bias=False),
         memory=memory,
         probability_fn=wrapped_probability_fn,
         memory_sequence_length=memory_sequence_length,
@@ -692,11 +681,7 @@ def _monotonic_probability_fn(score, previous_alignments, sigmoid_noise, mode,
                                      seed=seed)
     score += sigmoid_noise*noise
   # Compute "choosing" probabilities from the attention scores
-  if mode == "hard":
-    # When mode is hard, use a hard sigmoid
-    p_choose_i = math_ops.cast(score > 0, score.dtype)
-  else:
-    p_choose_i = math_ops.sigmoid(score)
+  p_choose_i = math_ops.sigmoid(score)
   # Convert from choosing probabilities to attention distribution
   return monotonic_attention(p_choose_i, previous_alignments, mode)
 
@@ -751,12 +736,11 @@ class BahdanauMonotonicAttention(_BaseMonotonicAttentionMechanism):
                memory,
                memory_sequence_length=None,
                normalize=False,
-               score_mask_value=None,
+               score_mask_value=float("-inf"),
                sigmoid_noise=0.,
                sigmoid_noise_seed=None,
                score_bias_init=0.,
                mode="parallel",
-               dtype=None,
                name="BahdanauMonotonicAttention"):
     """Construct the Attention mechanism.
 
@@ -780,21 +764,17 @@ class BahdanauMonotonicAttention(_BaseMonotonicAttentionMechanism):
       mode: How to compute the attention distribution.  Must be one of
         'recursive', 'parallel', or 'hard'.  See the docstring for
         `tf.contrib.seq2seq.monotonic_attention` for more information.
-      dtype: The data type for the query and memory layers of the attention
-        mechanism.
       name: Name to use when creating ops.
     """
     # Set up the monotonic probability fn with supplied parameters
-    if dtype is None:
-      dtype = dtypes.float32
     wrapped_probability_fn = functools.partial(
         _monotonic_probability_fn, sigmoid_noise=sigmoid_noise, mode=mode,
         seed=sigmoid_noise_seed)
     super(BahdanauMonotonicAttention, self).__init__(
         query_layer=layers_core.Dense(
-            num_units, name="query_layer", use_bias=False, dtype=dtype),
+            num_units, name="query_layer", use_bias=False),
         memory_layer=layers_core.Dense(
-            num_units, name="memory_layer", use_bias=False, dtype=dtype),
+            num_units, name="memory_layer", use_bias=False),
         memory=memory,
         probability_fn=wrapped_probability_fn,
         memory_sequence_length=memory_sequence_length,
@@ -852,12 +832,11 @@ class LuongMonotonicAttention(_BaseMonotonicAttentionMechanism):
                memory,
                memory_sequence_length=None,
                scale=False,
-               score_mask_value=None,
+               score_mask_value=float("-inf"),
                sigmoid_noise=0.,
                sigmoid_noise_seed=None,
                score_bias_init=0.,
                mode="parallel",
-               dtype=None,
                name="LuongMonotonicAttention"):
     """Construct the Attention mechanism.
 
@@ -881,21 +860,17 @@ class LuongMonotonicAttention(_BaseMonotonicAttentionMechanism):
       mode: How to compute the attention distribution.  Must be one of
         'recursive', 'parallel', or 'hard'.  See the docstring for
         `tf.contrib.seq2seq.monotonic_attention` for more information.
-      dtype: The data type for the query and memory layers of the attention
-        mechanism.
       name: Name to use when creating ops.
     """
     # Set up the monotonic probability fn with supplied parameters
-    if dtype is None:
-      dtype = dtypes.float32
     wrapped_probability_fn = functools.partial(
         _monotonic_probability_fn, sigmoid_noise=sigmoid_noise, mode=mode,
         seed=sigmoid_noise_seed)
     super(LuongMonotonicAttention, self).__init__(
         query_layer=layers_core.Dense(
-            num_units, name="query_layer", use_bias=False, dtype=dtype),
+            num_units, name="query_layer", use_bias=False),
         memory_layer=layers_core.Dense(
-            num_units, name="memory_layer", use_bias=False, dtype=dtype),
+            num_units, name="memory_layer", use_bias=False),
         memory=memory,
         probability_fn=wrapped_probability_fn,
         memory_sequence_length=memory_sequence_length,
@@ -934,8 +909,8 @@ class LuongMonotonicAttention(_BaseMonotonicAttentionMechanism):
 
 class AttentionWrapperState(
     collections.namedtuple("AttentionWrapperState",
-                           ("cell_state", "attention", "time", "alignments",
-                            "alignment_history"))):
+                           ("cell_state", "attention_s", "attention_a", "time", "alignments_s",
+                            "alignments_a", "alignment_history_s", "alignment_history_a"))):
   """`namedtuple` storing the state of a `AttentionWrapper`.
 
   Contains:
@@ -992,22 +967,12 @@ def hardmax(logits, name=None):
     return array_ops.one_hot(
         math_ops.argmax(logits, -1), depth, dtype=logits.dtype)
 
-''' OZUM modified :
-    Add self_match argument to _compute_attention function
-'''
-def _compute_attention(attention_mechanism, cell_output, self_match, previous_alignments,
+
+def _compute_attention(attention_mechanism, cell_output, previous_alignments,
                        attention_layer):
   """Computes the attention and alignments for a given attention_mechanism."""
-  # case 1 : gated_attention_based recurrent network
-  if self_match is not True:
-    attention_inputs = array_ops.concat([cell_output, self_match], axis = -1)
-  
-  # case 2 : self-matching
-  else:
-    attention_inputs = cell_output
-
   alignments = attention_mechanism(
-      attention_inputs, previous_alignments=previous_alignments)
+      cell_output, previous_alignments=previous_alignments)
 
   # Reshape from [batch_size, memory_time] to [batch_size, 1, memory_time]
   expanded_alignments = array_ops.expand_dims(alignments, 1)
@@ -1024,26 +989,29 @@ def _compute_attention(attention_mechanism, cell_output, self_match, previous_al
   context = array_ops.squeeze(context, [1])
 
   if attention_layer is not None:
-    attention = attention_layer[0](array_ops.concat([cell_output, context], 1))
+    attention = attention_layer(array_ops.concat([cell_output, context], 1))
   else:
     attention = context
 
   return attention, alignments
 
 
-class AttentionWrapper(rnn_cell_impl.RNNCell):
+
+# OZUM
+
+class PairseqWrapper(rnn_cell_impl.RNNCell):
   """Wraps another `RNNCell` with attention.
   """
 
   def __init__(self,
                cell,
-               attention_mechanism,
+               attention_mechanism_s,
+               attention_mechanism_a,
                attention_layer_size=None,
                alignment_history=False,
                cell_input_fn=None,
                output_attention=True,
                initial_cell_state=None,
-               self_match = True,
                name=None):
     """Construct the `AttentionWrapper`.
 
@@ -1114,27 +1082,15 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
       ValueError: if `attention_layer_size` is not None, `attention_mechanism`
         is a list, and its length does not match that of `attention_layer_size`.
     """
-    super(AttentionWrapper, self).__init__(name=name)
+    super(PairseqWrapper, self).__init__(name=name)
     if not rnn_cell_impl._like_rnncell(cell):  # pylint: disable=protected-access
       raise TypeError(
           "cell must be an RNNCell, saw type: %s" % type(cell).__name__)
-    if isinstance(attention_mechanism, (list, tuple)):
-      self._is_multi = True
-      attention_mechanisms = attention_mechanism
-      for attention_mechanism in attention_mechanisms:
-        if not isinstance(attention_mechanism, AttentionMechanism):
-          raise TypeError(
-              "attention_mechanism must contain only instances of "
-              "AttentionMechanism, saw type: %s"
-              % type(attention_mechanism).__name__)
-    else:
-      self._is_multi = False
-      if not isinstance(attention_mechanism, AttentionMechanism):
-        raise TypeError(
-            "attention_mechanism must be an AttentionMechanism or list of "
-            "multiple AttentionMechanism instances, saw type: %s"
-            % type(attention_mechanism).__name__)
-      attention_mechanisms = (attention_mechanism,)
+
+    self._is_multi = False
+
+    attention_mechanisms_s = (attention_mechanism_s,)
+    attention_mechanisms_a = (attention_mechanism_a,)
 
     if cell_input_fn is None:
       cell_input_fn = (
@@ -1150,31 +1106,28 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
           attention_layer_size
           if isinstance(attention_layer_size, (list, tuple))
           else (attention_layer_size,))
-      if len(attention_layer_sizes) != len(attention_mechanisms):
+      if len(attention_layer_sizes) != len(attention_mechanisms_s): # I didn't care much about this part
         raise ValueError(
             "If provided, attention_layer_size must contain exactly one "
             "integer per attention_mechanism, saw: %d vs %d"
-            % (len(attention_layer_sizes), len(attention_mechanisms)))
+            % (len(attention_layer_sizes), len(attention_mechanisms_s))) # I didn't care much about this part
       self._attention_layers = tuple(
           layers_core.Dense(
-              attention_layer_size,
-              name="attention_layer",
-              use_bias=False,
-              dtype=attention_mechanisms[i].dtype)
-          for i, attention_layer_size in enumerate(attention_layer_sizes))
+              attention_layer_size, name="attention_layer", use_bias=False)
+          for attention_layer_size in attention_layer_sizes)
       self._attention_layer_size = sum(attention_layer_sizes)
     else:
       self._attention_layers = None
       self._attention_layer_size = sum(
           attention_mechanism.values.get_shape()[-1].value
-          for attention_mechanism in attention_mechanisms)
+          for attention_mechanism in attention_mechanisms_s) # I didn't care much about this part
 
     self._cell = cell
-    self._attention_mechanisms = attention_mechanisms
+    self._attention_mechanisms_s = attention_mechanisms_s
+    self._attention_mechanisms_a = attention_mechanisms_a
     self._cell_input_fn = cell_input_fn
     self._output_attention = output_attention
     self._alignment_history = alignment_history
-    self._self_match = self_match
     with ops.name_scope(name, "AttentionWrapperInit"):
       if initial_cell_state is None:
         self._initial_cell_state = None
@@ -1200,7 +1153,7 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
     return [check_ops.assert_equal(batch_size,
                                    attention_mechanism.batch_size,
                                    message=error_message)
-            for attention_mechanism in self._attention_mechanisms]
+            for attention_mechanism in self._attention_mechanisms_s]
 
   def _item_or_tuple(self, seq):
     """Returns `seq` as tuple or the singular element.
@@ -1227,22 +1180,15 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
       return self._attention_layer_size
     else:
       return self._cell.output_size
-
+  
   @property
   def state_size(self):
-    """The `state_size` property of `AttentionWrapper`.
+    if self._attention_layer_size is not None:
+      return self._attention_layer_size
+    else:
+      return self._cell.output_size
 
-    Returns:
-      An `AttentionWrapperState` tuple containing shapes used by this object.
-    """
-    return AttentionWrapperState(
-        cell_state=self._cell.state_size,
-        time=tensor_shape.TensorShape([]),
-        attention=self._attention_layer_size,
-        alignments=self._item_or_tuple(
-            a.alignments_size for a in self._attention_mechanisms),
-        alignment_history=self._item_or_tuple(
-            () for _ in self._attention_mechanisms))  # sometimes a TensorArray
+
 
   def zero_state(self, batch_size, dtype):
     """Return an initial (zero) state tuple for this `AttentionWrapper`.
@@ -1285,46 +1231,28 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
       return AttentionWrapperState(
           cell_state=cell_state,
           time=array_ops.zeros([], dtype=dtypes.int32),
-          attention=_zero_state_tensors(self._attention_layer_size, batch_size,
+          attention_s=_zero_state_tensors(self._attention_layer_size, batch_size,
                                         dtype),
-          alignments=self._item_or_tuple(
+          attention_a =_zero_state_tensors(self._attention_layer_size, batch_size,
+                                        dtype), 
+          alignments_s=self._item_or_tuple(
               attention_mechanism.initial_alignments(batch_size, dtype)
-              for attention_mechanism in self._attention_mechanisms),
-          alignment_history=self._item_or_tuple(
+              for attention_mechanism in self._attention_mechanisms_s),
+          alignments_a=self._item_or_tuple(
+              attention_mechanism.initial_alignments(batch_size, dtype)
+              for attention_mechanism in self._attention_mechanisms_a),
+          alignment_history_s=self._item_or_tuple(
               tensor_array_ops.TensorArray(dtype=dtype, size=0,
                                            dynamic_size=True)
               if self._alignment_history else ()
-              for _ in self._attention_mechanisms))
-  def __call__(self, rnn_input, rnn_state):
-    previous_state = rnn_state.cell_state
-    previous_alignments = rnn_state.alignments
-    previous_alignment_history = rnn_state.alignment_history
-    self._attention_mechanisms = self._attention_mechanisms[0]
+              for _ in self._attention_mechanisms_s),
+          alignment_history_a=self._item_or_tuple(
+              tensor_array_ops.TensorArray(dtype=dtype, size=0,
+                                           dynamic_size=True)
+              if self._alignment_history else ()
+              for _ in self._attention_mechanisms_a))
 
-    attention, alignments = _compute_attention(
-            self._attention_mechanisms, previous_state, True if self._self_match else rnn_input, previous_alignments,
-            self._attention_layers if self._attention_layers else None)
-
-    cell_input = self._cell_input_fn(rnn_input, attention)
-    cell_output, next_cell_state = self._cell(cell_input, previous_state)
-
-    alignment_history = previous_alignment_history.write(
-            rnn_state.time, alignments) if self._alignment_history else ()
-
-    next_state = AttentionWrapperState(
-            time = rnn_state.time + 1,
-            cell_state = next_cell_state,
-            attention = attention,
-            alignments = alignments,
-            alignment_history = alignment_history
-            )
-
-    return cell_output, next_state
-
-  ''' OZUM modified :
-    from call to __call__, and add self_match argument
-  '''
-  def __call(self, inputs, state, self_match = True):
+  def call(self, inputs, state):
     """Perform a step of attention-wrapped RNN.
 
     - Step 1: Mix the `inputs` and previous step's `attention` output via
@@ -1360,8 +1288,19 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
 
     # Step 1: Calculate the true inputs to the cell based on the
     # previous attention value.
-    cell_inputs = self._cell_input_fn(inputs, state.attention)
+    
     cell_state = state.cell_state
+    
+    projection = tf.layers.Dense(self.state_size, tf.tanh, use_bias = True, name = 'projection')
+    
+    e_f_s = tf.exp(projection(state.attention_s))
+    e_f_a = tf.exp(projection(state.attention_a))
+    a_a_s = e_f_s/(e_f_s + e_f_a)
+    a_a_a = e_f_a/(e_f_s + e_f_a)
+    c_s_plus_a = a_a_s * state.attention_s + a_a_a * state.attention_a
+    
+    cell_inputs = self._cell_input_fn(inputs, c_s_plus_a)
+    
     cell_output, next_cell_state = self._cell(cell_inputs, cell_state)
 
     cell_batch_size = (
@@ -1382,30 +1321,52 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
       previous_alignments = state.alignments
       previous_alignment_history = state.alignment_history
     else:
-      previous_alignments = [state.alignments]
-      previous_alignment_history = [state.alignment_history]
+      previous_alignments_s = [state.alignments_s]
+      previous_alignments_a = [state.alignments_a]
+      previous_alignment_history_s = [state.alignment_history_s]
+      previous_alignment_history_a = [state.alignment_history_a]
 
-    all_alignments = []
-    all_attentions = []
-    all_histories = []
-    for i, attention_mechanism in enumerate(self._attention_mechanisms):
+    all_alignments_s = []
+    all_attentions_s = []
+    all_histories_s = []
+    all_alignments_a = []
+    all_attentions_a = []
+    all_histories_a = []
+    
+    for i, attention_mechanism in enumerate(self._attention_mechanisms_s):
       attention, alignments = _compute_attention(
-          attention_mechanism, cell_output, previous_alignments[i],
+          attention_mechanism, cell_output, previous_alignments_s[i],
           self._attention_layers[i] if self._attention_layers else None)
-      alignment_history = previous_alignment_history[i].write(
+      alignment_history = previous_alignment_history_s[i].write(
           state.time, alignments) if self._alignment_history else ()
 
-      all_alignments.append(alignments)
-      all_histories.append(alignment_history)
-      all_attentions.append(attention)
+      all_alignments_s.append(alignments)
+      all_histories_s.append(alignment_history)
+      all_attentions_s.append(attention)
+    
+    for i, attention_mechanism in enumerate(self._attention_mechanisms_a):
+      attention, alignments = _compute_attention(
+          attention_mechanism, cell_output, previous_alignments_a[i],
+          self._attention_layers[i] if self._attention_layers else None)
+      alignment_history = previous_alignment_history_a[i].write(
+          state.time, alignments) if self._alignment_history else ()
 
-    attention = array_ops.concat(all_attentions, 1)
+      all_alignments_a.append(alignments)
+      all_histories_a.append(alignment_history)
+      all_attentions_a.append(attention)
+
+    attention_s = array_ops.concat(all_attentions_s, 1)
+    attention_a = array_ops.concat(all_attentions_a, 1)
+    
     next_state = AttentionWrapperState(
         time=state.time + 1,
         cell_state=next_cell_state,
-        attention=attention,
-        alignments=self._item_or_tuple(all_alignments),
-        alignment_history=self._item_or_tuple(all_histories))
+        attention_s=attention_s,
+        attention_a=attention_a,
+        alignments_s=self._item_or_tuple(all_alignments_s),
+        alignments_a=self._item_or_tuple(all_alignments_a),
+        alignment_history_s=self._item_or_tuple(all_histories_s),
+        alignment_history_a=self._item_or_tuple(all_histories_a))
 
     if self._output_attention:
       return attention, next_state
