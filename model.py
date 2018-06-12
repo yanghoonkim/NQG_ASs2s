@@ -116,7 +116,7 @@ def q_generation(features, labels, mode, params):
 
         answer_outputs = tf.concat(answer_outputs, -1)
         answer_state_c = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
-        answer_state_h = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
+        answer_state_h = tf.concat([answer_state[0].h, answer_state[1].h], axis = 1)
         answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
 
     # This part should be moved into QuestionGeneration scope    
