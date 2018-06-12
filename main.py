@@ -27,7 +27,10 @@ def write_result(predict_results):
         while True:
             try : 
                 output = predict_results.next()
-                indices = [reversed_dic[index] for index in output['question']]
+                output = output['question'].tolist()
+                if -1 in output: # beam search
+                    output = output[:output.index(-1)]
+                indices = [reversed_dic[index] for index in output]
                 sentence = ' '.join(indices)
                 sentence = remove_eos(sentence)
                 f.write(sentence.encode('utf-8'))

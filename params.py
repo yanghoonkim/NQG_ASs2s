@@ -27,10 +27,13 @@ def basic_params():
         attn = 'normed_bahdanau',
 
         # learning parameters
-        batch_size = 256,
+        batch_size = 64,
         learning_rate = 0.001,
         decay_step = None,
-        decay_rate = 0.5
+        decay_rate = 0.5,
+
+        beam_width = 10,
+        length_penalty_weight = 1.8
         )
     
 def other_params():

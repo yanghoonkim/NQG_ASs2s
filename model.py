@@ -44,6 +44,9 @@ def q_generation(features, labels, mode, params):
 
     answer = features['a']
     len_a = features['len_a']
+
+    beam_width = params['beam_width']
+    length_penalty_weight = params['length_penalty_weight']
     
     # batch_size should not be specified
     # if fixed, then the redundant eval_data will make error
@@ -103,6 +106,11 @@ def q_generation(features, labels, mode, params):
                 _encoder_state.append(partial_state)
             encoder_state = tuple(_encoder_state)
 
+        if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            encoder_state = tf.contrib.seq2seq.tile_batch(encoder_state, beam_width)
+            encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
+            len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
+
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
         embedding_q = tf.get_variable('embedding')
@@ -121,7 +129,8 @@ def q_generation(features, labels, mode, params):
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
                 attention_layer_size=hidden_size,
-                initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
+                initial_cell_state = None)
+                #initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
 
         decoder_cell = tf.contrib.rnn.OutputProjectionWrapper(decoder_cell, voca_size)
 
@@ -139,28 +148,45 @@ def q_generation(features, labels, mode, params):
                     )
 
         # Decoder
-        initial_state = decoder_cell.zero_state(dtype = dtype, batch_size = batch_size)
-        projection_q = tf.layers.Dense(voca_size, use_bias = True)
-
-        decoder = tf.contrib.seq2seq.BasicDecoder(
-            decoder_cell, helper, initial_state,
-            output_layer=None)
+        if mode != tf.estimator.ModeKeys.PREDICT or beam_width == 0:
+            initial_state = decoder_cell.zero_state(dtype = dtype, batch_size = batch_size)
+            if params['encoder_layer'] == params['decoder_layer']:
+                initial_state = initial_state.clone(cell_state = encoder_state)
+        
+            decoder = tf.contrib.seq2seq.BasicDecoder(
+                decoder_cell, helper, initial_state,
+                output_layer=None)
+        else:
+            initial_state = decoder_cell.zero_state(dtype = dtype, batch_size = batch_size * beam_width)
+            if params['encoder_layer'] == params['decoder_layer']:
+                initial_state = initial_state.clone(cell_state = encoder_state)
+            decoder = tf.contrib.seq2seq.BeamSearchDecoder(
+                    cell = decoder_cell,
+                    embedding = embedding_q,
+                    start_tokens = start_token,
+                    end_token = params['end_token'],
+                    initial_state = initial_state,
+                    beam_width = beam_width,
+                    length_penalty_weight = length_penalty_weight)
 
         # Dynamic decoding
         if mode == tf.estimator.ModeKeys.TRAIN:
             outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished=True, maximum_iterations = None)
-        else: # Test & Eval
+            logits_q = outputs.rnn_output
+            softmax_q = tf.nn.softmax(logits_q)
+            predictions_q = tf.argmax(softmax_q, axis = -1)
+        elif mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished = False, maximum_iterations = params['maxlen_q_dev'])
+            predictions_q = outputs.predicted_ids # [batch, length, beam_width]
+            predictions_q = tf.transpose(predictions_q, [0, 2, 1]) # [batch, beam_width, length]
+            predictions_q = predictions_q[:, 0, :] # [batch, length]
+        else:
             max_iter = params['maxlen_q_dev']
             outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished=True, maximum_iterations = max_iter)
-        
-        logits_q = outputs.rnn_output
-        #logits_q = projection_q(outputs.rnn_output)
-
+            logits_q = outputs.rnn_output
+            softmax_q = tf.nn.softmax(logits_q)
+            predictions_q = tf.argmax(softmax_q, axis = -1)       
     
-    # Predictions
-    softmax_q = tf.nn.softmax(logits_q)
-    predictions_q = tf.argmax(softmax_q, axis = -1)
-
     if mode == tf.estimator.ModeKeys.PREDICT:
         return tf.estimator.EstimatorSpec(
                 mode = mode,
