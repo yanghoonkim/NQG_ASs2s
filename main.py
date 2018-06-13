@@ -18,7 +18,7 @@ def remove_eos(sentence, eos = '<EOS>', pad = '<PAD>'):
 
 def write_result(predict_results):
     print 'Load dic file...'
-    with open('../qa_generation/data/squad/processed/qa_from_s/vocab_qa_from_s.dic') as dic:
+    with open('../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/vocab_qa_from_s.dic') as dic:
         dic_file = pkl.load(dic)
     reversed_dic = dict((y,x) for x,y in dic_file.iteritems())
     

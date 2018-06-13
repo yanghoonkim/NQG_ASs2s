@@ -111,6 +111,26 @@ def q_generation(features, labels, mode, params):
             encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
             len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
 
+        answer_cell_fw = lstm_cell_enc()
+        answer_cell_bw = lstm_cell_enc()
+
+        answer_outputs, answer_state = tf.nn.bidirectional_dynamic_rnn(
+                answer_cell_fw,
+                answer_cell_bw,
+                inputs = embd_a,
+                sequence_length = len_a,
+                dtype = dtype,
+                scope = 'answer_scope')
+
+        answer_outputs = tf.concat(answer_outputs, -1)
+        answer_state_c = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
+        answer_state_h = tf.concat([answer_state[0].h, answer_state[1].h], axis = 1)
+        answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
+
+        if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            answer_state = tf.contrib.seq2seq.tile_batch(answer_state, beam_width)
+            len_a = tf.contrib.seq2seq.tile_batch(len_a, beam_width)
+
     # This part should be moved into QuestionGeneration scope    
     with tf.variable_scope('SharedScope/EmbeddingScope', reuse = True):
         embedding_q = tf.get_variable('embedding')
@@ -151,7 +171,7 @@ def q_generation(features, labels, mode, params):
         if mode != tf.estimator.ModeKeys.PREDICT or beam_width == 0:
             initial_state = decoder_cell.zero_state(dtype = dtype, batch_size = batch_size)
             if params['encoder_layer'] == params['decoder_layer']:
-                initial_state = initial_state.clone(cell_state = encoder_state)
+                initial_state = initial_state.clone(cell_state = answer_state)
         
             decoder = tf.contrib.seq2seq.BasicDecoder(
                 decoder_cell, helper, initial_state,
@@ -159,7 +179,7 @@ def q_generation(features, labels, mode, params):
         else:
             initial_state = decoder_cell.zero_state(dtype = dtype, batch_size = batch_size * beam_width)
             if params['encoder_layer'] == params['decoder_layer']:
-                initial_state = initial_state.clone(cell_state = encoder_state)
+                initial_state = initial_state.clone(cell_state = answer_state)
             decoder = tf.contrib.seq2seq.BeamSearchDecoder(
                     cell = decoder_cell,
                     embedding = embedding_q,

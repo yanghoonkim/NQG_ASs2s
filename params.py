@@ -5,7 +5,7 @@ def basic_params():
     return tf.contrib.training.HParams(
         dtype = tf.float32,
         voca_size = 34004,
-        embedding = '../qa_generation/data/squad/processed/qa_from_s/glove840b_qafroms_vocab300.npy',
+        embedding = '../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/glove840b_qafroms_vocab300.npy',
         embedding_trainable = False,
         hidden_size = 512,
         encoder_layer = 1,
