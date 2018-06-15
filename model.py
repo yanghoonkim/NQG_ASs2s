@@ -110,8 +110,8 @@ def q_generation(features, labels, mode, params):
             encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
             len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
 
-        answer_cell_fw = lstm_cell_enc()
-        answer_cell_bw = lstm_cell_enc()
+        answer_cell_fw = lstm_cell_enc() if params['answer_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['answer_layer'])])
+        answer_cell_bw = lstm_cell_enc() if params['answer_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['answer_layer'])])
 
         answer_outputs, answer_state = tf.nn.bidirectional_dynamic_rnn(
                 answer_cell_fw,
@@ -120,11 +120,20 @@ def q_generation(features, labels, mode, params):
                 sequence_length = len_a,
                 dtype = dtype,
                 scope = 'answer_scope')
-
-        answer_outputs = tf.concat(answer_outputs, -1)
-        answer_state_c = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
-        answer_state_h = tf.concat([answer_state[0].h, answer_state[1].h], axis = 1)
-        answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
+        
+        if params['answer_layer'] == 1:
+            answer_outputs = tf.concat(answer_outputs, -1)
+            answer_state_c = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
+            answer_state_h = tf.concat([answer_state[0].h, answer_state[1].h], axis = 1)
+            answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
+        else:
+            _answer_state = list()
+            for state_fw, state_bw in zip(answer_state[0], answer_state[1]):
+                partial_state_c = tf.concat([state_fw.c, state_bw.c], axis = 1)
+                partial_state_h = tf.concat([state_fw.h, state_bw.h], axis = 1)
+                partial_state = tf.contrib.rnn.LSTMStateTuple(c = partial_state_c, h = partial_state_h)
+                _answer_state.append(partial_state)
+            answer_state = tuple(_answer_state)
 
         if params['dec_init_ans'] and params['decoder_layer'] == params['answer_layer']:
             copy_state = answer_state

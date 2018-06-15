@@ -7,13 +7,12 @@ def basic_params():
         voca_size = 34004,
         embedding = '../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy',
         embedding_trainable = False,
-        hidden_size = 800,
-        encoder_layer = 1,
-        decoder_layer = 1,
-        answer_layer = 1,
+        hidden_size = 512,
+        encoder_layer = 2,
+        decoder_layer = 2,
+        answer_layer = 2,
         dec_init_ans = True,
         
-        maxlen_s = 60,
         maxlen_q_train = 32,
         maxlen_q_dev = 27,
         maxlen_q_test = 27,
@@ -67,6 +66,23 @@ def other_params1():
     hparams.hidden_size = 800
     hparams.encoder_layer = 1
     hparams.decoder_layer = 1
+
+    hparams.batch_size = 64
+    return hparams
+
+def other_params2():
+    hparams = basic_params()
+    hparams.voca_size = 34004
+    embedding = '../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy'
+
+    hparams.maxlen_q_train = 62
+    hparams.maxlen_q_dev = 36
+    hparams.maxlen_q_test = 38
+    hparams.embedding_trainable = False
+    hparams.hidden_size = 512
+    hparams.encoder_layer = 2
+    hparams.decoder_layer = 2
+    hparams.answer_layer = 2
 
     hparams.batch_size = 64
     return hparams
