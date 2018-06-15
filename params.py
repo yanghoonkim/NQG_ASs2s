@@ -10,6 +10,8 @@ def basic_params():
         hidden_size = 800,
         encoder_layer = 1,
         decoder_layer = 1,
+        answer_layer = 1,
+        dec_init_ans = True,
         
         maxlen_s = 60,
         maxlen_q_train = 32,
