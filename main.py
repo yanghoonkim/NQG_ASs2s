@@ -16,9 +16,9 @@ def remove_eos(sentence, eos = '<EOS>', pad = '<PAD>'):
     else:
         return sentence + '\n'
 
-def write_result(predict_results):
+def write_result(predict_results, dic_path):
     print 'Load dic file...'
-    with open('../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/vocab_qa_from_s.dic') as dic:
+    with open(dic_path) as dic:
         dic_file = pkl.load(dic)
     reversed_dic = dict((y,x) for x,y in dic_file.iteritems())
     
@@ -134,7 +134,7 @@ def main(unused):
         # prediction
         predict_results = nn.predict(input_fn = pred_input_fn)
         # write result(question) into file
-        write_result(predict_results)
+        write_result(predict_results, FLAGS.dictionary)
         #print_result(predict_results)
 
     
@@ -157,6 +157,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_answer', type = str, default = '', help = 'path to the test answer')
     parser.add_argument('--test_sentence_length', type = str, default = '')
     parser.add_argument('--test_answer_length', type = str, default = '')
+    parser.add_argument('--dictionary', type = str, help = 'path to the dictionary')
     parser.add_argument('--model_dir', type = str, help = 'path to save the model')
     parser.add_argument('--pred_dir', type = str, help = 'path to save the predictions')
     parser.add_argument('--params', type = str, help = 'parameter setting')

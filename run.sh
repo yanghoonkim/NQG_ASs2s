@@ -18,61 +18,71 @@ pred(){
 }
 
 
-xinyadu_glove(){
-	TRAIN_SENTENCE='data/squad/processed/xinyadu_processed/train_sentence.npy'
-	TRAIN_QUESTION='data/squad/processed/xinyadu_processed/train_question.npy'
-	TRAIN_LENGTH_S='data/squad/processed/xinyadu_processed/train_length_sentence.npy'
-	TRAIN_LENGTH_Q='data/squad/processed/xinyadu_processed/train_length_question.npy'
-	DEV_SENTENCE='data/squad/processed/xinyadu_processed/dev_sentence.npy'
-	DEV_QUESTION='data/squad/processed/xinyadu_processed/dev_question.npy'
-	DEV_LENGTH_S='data/squad/processed/xinyadu_processed/dev_length_sentence.npy'
-	DEV_LENGTH_Q='data/squad/processed/xinyadu_processed/dev_length_question.npy'
-	TEST_SENTENCE='data/squad/processed/xinyadu_processed/test_sentence.npy'
-	TEST_LENGTH_S='data/squad/processed/xinyadu_processed/test_length_sentence.npy'
-	PRED_DIR='result/xinyadu_glove.txt'
-	PARAMS=basic_params
-}
-
 squad(){
-	TRAIN_SENTENCE='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/train_sentence.npy'
-	TRAIN_QUESTION='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/train_question.npy'
-	TRAIN_ANSWER='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/train_answer.npy'
-	TRAIN_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/train_length_sentence.npy'
-	TRAIN_LENGTH_Q='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/train_length_question.npy'
-	TRAIN_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/train_length_answer.npy'
-	DEV_SENTENCE='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_sentence.npy'
-	DEV_QUESTION='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_question.npy'
-	DEV_ANSWER='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_answer.npy'
-	DEV_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_length_sentence.npy'
-	DEV_LENGTH_Q='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_length_question.npy'
-	DEV_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_length_answer.npy'
-	TEST_SENTENCE='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_sentence.npy'
-	TEST_ANSWER='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_answer.npy'
-	TEST_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_length_sentence.npy'
-	TEST_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s_vocab_include_a/dev_length_answer.npy'
+	TRAIN_SENTENCE='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/train_sentence.npy'
+	TRAIN_QUESTION='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/train_question.npy'
+	TRAIN_ANSWER='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/train_answer.npy'
+	TRAIN_LENGTH_S='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/train_length_sentence.npy'
+	TRAIN_LENGTH_Q='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/train_length_question.npy'
+	TRAIN_LENGTH_A='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/train_length_answer.npy'
+	DEV_SENTENCE='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/dev_sentence.npy'
+	DEV_QUESTION='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/dev_question.npy'
+	DEV_ANSWER='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/dev_answer.npy'
+	DEV_LENGTH_S='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/dev_length_sentence.npy'
+	DEV_LENGTH_Q='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/dev_length_question.npy'
+	DEV_LENGTH_A='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/dev_length_answer.npy'
+	TEST_SENTENCE='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/test_sentence.npy'
+	TEST_ANSWER='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/test_answer.npy'
+	TEST_LENGTH_S='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/test_length_sentence.npy'
+	TEST_LENGTH_A='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/test_length_answer.npy'
+	DICTIONARY='../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/vocab_mpqg.dic'
 	PRED_DIR='result/squad.txt'
 	PARAMS=basic_params
 }
 
 squadd(){
-	TRAIN_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/train_sentence.npy'
-	TRAIN_QUESTION='../qa_generation/data/squad/processed/qa_from_s/train_question.npy'
-	TRAIN_ANSWER='../qa_generation/data/squad/processed/qa_from_s/train_answer.npy'
-	TRAIN_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/train_length_sentence.npy'
-	TRAIN_LENGTH_Q='../qa_generation/data/squad/processed/qa_from_s/train_length_question.npy'
-	TRAIN_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s/train_length_answer.npy'
-	DEV_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/dev_sentence.npy'
-	DEV_QUESTION='../qa_generation/data/squad/processed/qa_from_s/dev_question.npy'
-	DEV_ANSWER='../qa_generation/data/squad/processed/qa_from_s/dev_answer.npy'
-	DEV_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/dev_length_sentence.npy'
-	DEV_LENGTH_Q='../qa_generation/data/squad/processed/qa_from_s/dev_length_question.npy'
-	DEV_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s/dev_length_answer.npy'
-	TEST_SENTENCE='../qa_generation/data/squad/processed/qa_from_s/dev_sentence.npy'
-	TEST_ANSWER='../qa_generation/data/squad/processed/qa_from_s/dev_answer.npy'
-	TEST_LENGTH_S='../qa_generation/data/squad/processed/qa_from_s/dev_length_sentence.npy'
-	TEST_LENGTH_A='../qa_generation/data/squad/processed/qa_from_s/dev_length_answer.npy'
-	PRED_DIR='result/squad.txt'
+	TRAIN_SENTENCE='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/train_sentence.npy'
+	TRAIN_QUESTION='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/train_question.npy'
+	TRAIN_ANSWER='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/train_answer.npy'
+	TRAIN_LENGTH_S='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/train_length_sentence.npy'
+	TRAIN_LENGTH_Q='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/train_length_question.npy'
+	TRAIN_LENGTH_A='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/train_length_answer.npy'
+	DEV_SENTENCE='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/dev_sentence.npy'
+	DEV_QUESTION='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/dev_question.npy'
+	DEV_ANSWER='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/dev_answer.npy'
+	DEV_LENGTH_S='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/dev_length_sentence.npy'
+	DEV_LENGTH_Q='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/dev_length_question.npy'
+	DEV_LENGTH_A='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/dev_length_answer.npy'
+	TEST_SENTENCE='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/test_sentence.npy'
+	TEST_ANSWER='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/test_answer.npy'
+	TEST_LENGTH_S='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/test_length_sentence.npy'
+	TEST_LENGTH_A='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/test_length_answer.npy'
+	DICTIONARY='../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/vocab_mpqg.dic'
+	PRED_DIR='result/squadd.txt'
 	PARAMS=other_params
+}
+
+
+squaddd(){
+	TRAIN_SENTENCE='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/train_sentence.npy'
+	TRAIN_QUESTION='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/train_question.npy'
+	TRAIN_ANSWER='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/train_answer.npy'
+	TRAIN_LENGTH_S='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/train_length_sentence.npy'
+	TRAIN_LENGTH_Q='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/train_length_question.npy'
+	TRAIN_LENGTH_A='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/train_length_answer.npy'
+	DEV_SENTENCE='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/dev_sentence.npy'
+	DEV_QUESTION='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/dev_question.npy'
+	DEV_ANSWER='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/dev_answer.npy'
+	DEV_LENGTH_S='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/dev_length_sentence.npy'
+	DEV_LENGTH_Q='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/dev_length_question.npy'
+	DEV_LENGTH_A='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/dev_length_answer.npy'
+	TEST_SENTENCE='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/test_sentence.npy'
+	TEST_ANSWER='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/test_answer.npy'
+	TEST_LENGTH_S='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/test_length_sentence.npy'
+	TEST_LENGTH_A='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/test_length_answer.npy'
+	DICTIONARY='../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/vocab_mpqg.dic'
+	PRED_DIR='result/squaddd.txt'
+	PARAMS=other_params1
 }
 
 
@@ -105,6 +115,7 @@ python main.py \
 	--test_answer=$TEST_ANSWER \
 	--test_sentence_length=$TEST_LENGTH_S \
 	--test_answer_length=$TEST_LENGTH_A \
+	--dictionary=$DICTIONARY \
 	--model_dir=$MODEL_DIR \
 	--pred_dir=$PRED_DIR \
 	--params=$PARAMS \

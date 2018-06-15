@@ -196,12 +196,12 @@ def q_generation(features, labels, mode, params):
             softmax_q = tf.nn.softmax(logits_q)
             predictions_q = tf.argmax(softmax_q, axis = -1)
         elif mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
-            outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished = False, maximum_iterations = params['maxlen_q_dev'])
+            outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished = False, maximum_iterations = params['maxlen_q_test'])
             predictions_q = outputs.predicted_ids # [batch, length, beam_width]
             predictions_q = tf.transpose(predictions_q, [0, 2, 1]) # [batch, beam_width, length]
             predictions_q = predictions_q[:, 0, :] # [batch, length]
         else:
-            max_iter = params['maxlen_q_dev']
+            max_iter = params['maxlen_q_test'] if mode == tf.estimator.ModeKeys.PREDICT else params['maxlen_q_dev']
             outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, impute_finished=True, maximum_iterations = max_iter)
             logits_q = outputs.rnn_output
             softmax_q = tf.nn.softmax(logits_q)
