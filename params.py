@@ -8,9 +8,10 @@ def basic_params():
         embedding = '../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy',
         embedding_trainable = False,
         hidden_size = 512,
-        encoder_layer = 2,
+        encoder_layer = 1,
         decoder_layer = 2,
         answer_layer = 2,
+        answer_while_encoding = True,
         dec_init_ans = True,
         
         maxlen_q_train = 32,
