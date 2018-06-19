@@ -106,7 +106,7 @@ def q_generation(features, labels, mode, params):
                     attention_layer_size = hidden_size,
                     initial_cell_state = None,
                     name = 'encoder_cell_bw')
-
+            '''
             encoder_outputs_fw, encoder_state_fw = tf.nn.dynamic_rnn(
                     encoder_cell_fw,
                     inputs = embd_s,
@@ -127,6 +127,17 @@ def q_generation(features, labels, mode, params):
             encoder_state = (encoder_state_fw.cell_state, encoder_state_bw.cell_state)
 
             encoder_outputs = tf.concat([encoder_outputs_fw, encoder_outputs_bw], -1)
+            '''
+
+            encoder_outputs, encoder_state = tf.nn.bidirectional_dynamic_rnn(
+                    encoder_cell_fw,
+                    encoder_cell_bw,
+                    inputs = embd_s,
+                    sequence_length = len_s,
+                    dtype = dtype)
+
+            encoder_outputs = tf.concat(encoder_outputs, -1)
+            encoder_state = (encoder_state[0].cell_state, encoder_state[1].cell_state)
 
         else :
             encoder_outputs, encoder_state = tf.nn.bidirectional_dynamic_rnn(

@@ -9,10 +9,10 @@ def basic_params():
         embedding_trainable = False,
         hidden_size = 512,
         encoder_layer = 1,
-        decoder_layer = 2,
-        answer_layer = 2,
+        decoder_layer = 1,
+        answer_layer = 1,
         answer_while_encoding = True,
-        dec_init_ans = True,
+        dec_init_ans = False,
         
         maxlen_q_train = 32,
         maxlen_q_dev = 27,
@@ -30,7 +30,7 @@ def basic_params():
         attn = 'normed_bahdanau',
 
         # learning parameters
-        batch_size = 64,
+        batch_size = 256,
         learning_rate = 0.001,
         decay_step = None,
         decay_rate = 0.5,
