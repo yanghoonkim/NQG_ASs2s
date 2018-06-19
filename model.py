@@ -4,6 +4,8 @@ import tensorflow as tf
 import sys
 sys.path.append('submodule/')
 from mytools import *
+import wean_wrapper
+
 def _attention(params, memory, memory_length):
     if params['attn'] == 'bahdanau':
         return tf.contrib.seq2seq.BahdanauAttention(
@@ -165,8 +167,11 @@ def q_generation(features, labels, mode, params):
                 attention_layer_size=hidden_size,
                 initial_cell_state = None)
                 #initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
-
-        decoder_cell = tf.contrib.rnn.OutputProjectionWrapper(decoder_cell, voca_size)
+        
+        if params['if_wean']:
+            decoder_cell = wean_wrapper.WeanWrapper(decoder_cell, embedding_q)
+        else:
+            decoder_cell = tf.contrib.rnn.OutputProjectionWrapper(decoder_cell, voca_size)
 
         # Helper for decoder cell
         if mode == tf.estimator.ModeKeys.TRAIN:

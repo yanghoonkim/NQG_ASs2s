@@ -7,10 +7,10 @@ def basic_params():
         voca_size = 34004,
         embedding = '../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy',
         embedding_trainable = False,
-        hidden_size = 512,
-        encoder_layer = 2,
-        decoder_layer = 2,
-        answer_layer = 2,
+        hidden_size = 800,
+        encoder_layer = 1,
+        decoder_layer = 1,
+        answer_layer = 1,
         dec_init_ans = True,
         
         maxlen_q_train = 32,
@@ -27,6 +27,7 @@ def basic_params():
         attn_dropout = 0.4,
 
         attn = 'normed_bahdanau',
+        if_wean = True,
 
         # learning parameters
         batch_size = 64,
