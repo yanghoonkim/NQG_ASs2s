@@ -24,17 +24,22 @@ def basic_params():
         
         num_heads = 1,
         context_depth = 512,
-        attn_dropout = 0.4,
-
+        
+        # Attention related parameters
         attn = 'normed_bahdanau',
-        if_wean = True,
+        attn_dropout = 0.4,
+        
+        # Output layer related parameters
+        if_wean = False,
+        copy_mechanism = True,
 
-        # learning parameters
+        # Training related parameters
         batch_size = 64,
         learning_rate = 0.001,
         decay_step = None,
         decay_rate = 0.5,
-
+        
+        # Beam Search
         beam_width = 10,
         length_penalty_weight = 2.1
         )
