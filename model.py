@@ -171,7 +171,7 @@ def q_generation(features, labels, mode, params):
         if params['if_wean']:
             decoder_cell = wrapper.WeanWrapper(decoder_cell, embedding_q)
         elif params['copy_mechanism']:
-            decoder_cell = wrapper.CopyWrapper(decoder_cell, voca_size, sentence)
+            decoder_cell = wrapper.CopyWrapper(decoder_cell, voca_size, sentence, batch_size)
         else:
             decoder_cell = tf.contrib.rnn.OutputProjectionWrapper(decoder_cell, voca_size)
 

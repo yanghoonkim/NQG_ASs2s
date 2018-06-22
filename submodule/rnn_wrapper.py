@@ -58,7 +58,7 @@ class CopyWrapper(RNNCell):
     ''' Implementation of Copy Mechanism
     '''
     
-    def __init__(self, cell, output_size, sentence_index, activation = None):
+    def __init__(self, cell, output_size, sentence_index, batch_size, activation = None):
         super(CopyWrapper, self).__init__()
         if not _like_rnncell(cell):
             raise TypeError('The parameter cell is not RNNCell.')
@@ -67,6 +67,7 @@ class CopyWrapper(RNNCell):
         self._output_size = output_size
         self._sentence_index = sentence_index
         self._activation = activation
+        self._batch_size = batch_size
         self._linear = None
         
     @property
@@ -88,10 +89,10 @@ class CopyWrapper(RNNCell):
             attention_weight : [batch, length]
             sentence_index : [batch, length]
         '''
-        batch_size = tf.shape(attention_weight)[0]
+        current_batch_size = tf.shape(attention_weight)[0]
         sentence_length = attention_weight.get_shape()[-1]
 
-        batch_index = tf.range(batch_size)
+        batch_index = tf.range(self._batch_size)
         batch_index = tf.expand_dims(batch_index, [1])
         batch_index = tf.tile(batch_index, [1, sentence_length])
         batch_index = tf.reshape(batch_index, [-1, 1]) # looks like [0,0,0,0,0,1,1,1,1,1,2,2,2,2,2,....]
@@ -99,10 +100,13 @@ class CopyWrapper(RNNCell):
         flat_index = tf.reshape(sentence_index, [-1, 1])
         flat_index = tf.cast(flat_index, tf.int32)
         indices = tf.concat([batch_index, flat_index], 1)
+        if self._batch_size != current_batch_size:
+            multiple = current_batch_size / self._batch_size
+            indices = tf.contrib.seq2seq.tile_batch(indices, multiple)
 
         updates = tf.reshape(attention_weight, [-1])
 
-        p_attn = tf.scatter_nd(indices, updates, [batch_size, self._output_size])
+        p_attn = tf.scatter_nd(indices, updates, [current_batch_size, self._output_size])
 
         return p_attn
 
@@ -111,11 +115,14 @@ class CopyWrapper(RNNCell):
         current_alignment = state.alignments # attention weight(normalized)
         previous_state = state.cell_state.h # s(t-1)
         current_attention = state.attention
-
+        print current_attention
+        print current_attention.shape
         # Copy mechanism
         p_attn = self._attention_vocab(current_alignment, self._sentence_index)
 
         output, res_state = self._cell(inputs, state)
+        print output
+        print output.shape
         if self._linear is None:
             self._linear = _Linear(output, self._output_size, True)
         p_vocab = self._linear(output)
