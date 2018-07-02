@@ -93,6 +93,30 @@ def q_generation(features, labels, mode, params):
                 dtype = dtype)
 
         encoder_outputs = tf.concat(encoder_outputs, -1)
+        
+        # Variational autoencoder
+        x_enc = encoder_outputs[:,-1,:]
+
+        for _ in range(params['vae_layer']):
+            x_enc = tf.layers.dense(inputs = x_enc, 
+                    units = params['z_size'], 
+                    activation = tf.tanh, 
+                    use_bias = True, 
+                    kernel_initializer = tf.contrib.layers.xavier_initializer())
+
+        vae_mean  = tf.layers.dense(inputs = x_enc, 
+                units = params['z_size'], 
+                activation = None, 
+                use_bias = True, 
+                kernel_initializer = tf.contrib.layers.xavier_initializer())
+        vae_log_sigma = tf.layers.dense(inputs = x_enc,
+                units = params['z_size'],
+                activation = tf.nn.softplus,
+                use_bias = True,
+                kernel_initializer = tf.contrib.layers.xavier_initializer())
+        
+        epsilon = tf.random_normal([batch_size, params['z_size']], 0, 1, dtype = tf.float32)
+        latent_z = vae_mean + epsilon * tf.sqrt(tf.exp(vae_log_sigma))
 
         if params['encoder_layer'] == 1:
             encoder_state_c = tf.concat([encoder_state[0].c, encoder_state[1].c], axis = 1)
@@ -161,10 +185,16 @@ def q_generation(features, labels, mode, params):
 
         # Build decoder cell
         decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
+        
+        if params['vae_layer'] is None:
+            cell_input_fn = None
+        else:
+            cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, latent_z], -1)
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
                 attention_layer_size = hidden_size,
+                cell_input_fn = cell_input_fn,
                 initial_cell_state = None)
                 #initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
         
@@ -260,7 +290,9 @@ def q_generation(features, labels, mode, params):
             softmax_loss_function = None # default : sparse_softmax_cross_entropy
             )
     
-    loss = loss_q 
+    loss_latent = 0.5 * tf.reduce_sum(tf.exp(vae_log_sigma) + tf.square(vae_mean) - vae_log_sigma - 1, 1)
+    loss_latent = tf.reduce_mean(loss_latent)
+    loss = loss_q + loss_latent
 
     # eval_metric for estimator
     eval_metric_ops = {
@@ -269,6 +301,7 @@ def q_generation(features, labels, mode, params):
 
     # Summary
     tf.summary.scalar('loss_question', loss_q)
+    tf.summary.scalar('loss_latent', loss_latent)
     tf.summary.scalar('total_loss', loss)
 
 

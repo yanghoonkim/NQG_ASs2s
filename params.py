@@ -24,6 +24,10 @@ def basic_params():
         
         num_heads = 1,
         context_depth = 512,
+
+        # Variational Autoencoder related parameters
+        vae_layer = 2,
+        z_size = 20,
         
         # Attention related parameters
         attn = 'normed_bahdanau',
