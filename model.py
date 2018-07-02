@@ -135,6 +135,10 @@ def q_generation(features, labels, mode, params):
         if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
             encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
             len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
+            
+            # VAE
+            if params['vae_layer'] is not None:
+                latent_z = tf.contrib.seq2seq.tile_batch(latent_z, beam_width)
 
         answer_cell_fw = lstm_cell_enc() if params['answer_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['answer_layer'])])
         answer_cell_bw = lstm_cell_enc() if params['answer_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['answer_layer'])])
