@@ -108,6 +108,14 @@ def q_generation(features, labels, mode, params):
                 _encoder_state.append(partial_state)
             encoder_state = tuple(_encoder_state)
 
+
+        # latent interrogative words
+        if params['latent_type_with_s'] > 0:
+            last_output = encoder_outputs[:, -1, :] # [batch, 2 * depth]
+            m = tf.get_variable('m', [2 * params['hidden_size'], params['latent_type_with_s']], tf.float32)
+            p_s = tf.nn.softmax(tf.matmul(last_output, m, name = 'p_s'))
+            o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth] 
+            
         if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
             encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
             len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
@@ -161,6 +169,9 @@ def q_generation(features, labels, mode, params):
 
         # Build decoder cell
         decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
+        
+        if params['latent_type_with_s'] > 0:
+            cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,

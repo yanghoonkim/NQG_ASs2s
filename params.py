@@ -25,6 +25,9 @@ def basic_params():
         num_heads = 1,
         context_depth = 512,
         
+        # Memory network related parameters
+        latent_type_with_s = 8,
+
         # Attention related parameters
         attn = 'normed_bahdanau',
         attn_dropout = 0.4,
