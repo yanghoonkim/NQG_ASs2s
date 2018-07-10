@@ -47,7 +47,7 @@ def main(unused):
     # Config
     config = tf.contrib.learn.RunConfig(
             model_dir = FLAGS.model_dir, 
-            keep_checkpoint_max = 10, 
+            keep_checkpoint_max = 3, 
             save_checkpoints_steps = 100)
     
     # Load parameters
@@ -139,30 +139,31 @@ def main(unused):
 
     
 if __name__ == '__main__':
+    base_path = '../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/'
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type = str, help = 'train, eval')
-    parser.add_argument('--train_sentence', type = str, default= '', help = 'path to the training sentence.')
-    parser.add_argument('--train_question', type = str, default = '', help = 'path to the training question.')
-    parser.add_argument('--train_answer', type = str, default = '', help = 'path to the training answer')
-    parser.add_argument('--train_sentence_length', type = str, default = '')
-    parser.add_argument('--train_question_length', type = str, default = '')
-    parser.add_argument('--train_answer_length', type = str, default = '')
-    parser.add_argument('--eval_sentence', type = str, default = '', help = 'path to the evaluation sentence. ')
-    parser.add_argument('--eval_question', type = str, default = '', help = 'path to the evaluation question.')
-    parser.add_argument('--eval_answer', type = str, default = '', help = 'path to the evaluation answer')
-    parser.add_argument('--eval_sentence_length', type = str, default = '')
-    parser.add_argument('--eval_question_length', type = str, default = '')
-    parser.add_argument('--eval_answer_length', type = str, default ='')
-    parser.add_argument('--test_sentence', type = str, default = '', help = 'path to the test sentence.')
-    parser.add_argument('--test_answer', type = str, default = '', help = 'path to the test answer')
-    parser.add_argument('--test_sentence_length', type = str, default = '')
-    parser.add_argument('--test_answer_length', type = str, default = '')
-    parser.add_argument('--dictionary', type = str, help = 'path to the dictionary')
+    parser.add_argument('--mode', type = str, default = 'train', help = 'train, eval')
+    parser.add_argument('--train_sentence', type = str, default= base_path + 'train_sentence.npy', help = 'path to the training sentence.')
+    parser.add_argument('--train_question', type = str, default = base_path + 'train_question.npy', help = 'path to the training question.')
+    parser.add_argument('--train_answer', type = str, default = base_path + 'train_answer.npy', help = 'path to the training answer')
+    parser.add_argument('--train_sentence_length', type = str, default = base_path + 'train_length_sentence.npy')
+    parser.add_argument('--train_question_length', type = str, default = base_path + 'train_length_question.npy')
+    parser.add_argument('--train_answer_length', type = str, default = base_path + 'train_length_answer.npy')
+    parser.add_argument('--eval_sentence', type = str, default = base_path + 'dev_sentence.npy', help = 'path to the evaluation sentence. ')
+    parser.add_argument('--eval_question', type = str, default = base_path + 'dev_question.npy', help = 'path to the evaluation question.')
+    parser.add_argument('--eval_answer', type = str, default = base_path + 'dev_answer.npy', help = 'path to the evaluation answer')
+    parser.add_argument('--eval_sentence_length', type = str, default = base_path + 'dev_length_sentence.npy')
+    parser.add_argument('--eval_question_length', type = str, default = base_path + 'dev_length_question.npy')
+    parser.add_argument('--eval_answer_length', type = str, default = base_path + 'dev_length_answer.npy')
+    parser.add_argument('--test_sentence', type = str, default = base_path + 'test_sentence.npy', help = 'path to the test sentence.')
+    parser.add_argument('--test_answer', type = str, default = base_path + 'test_answer.npy', help = 'path to the test answer')
+    parser.add_argument('--test_sentence_length', type = str, default = base_path + 'test_length_sentence.npy')
+    parser.add_argument('--test_answer_length', type = str, default = base_path + 'test_length_answer.npy')
+    parser.add_argument('--dictionary', type = str, default = base_path + 'vocab_mpqg.dic', help = 'path to the dictionary')
     parser.add_argument('--model_dir', type = str, help = 'path to save the model')
-    parser.add_argument('--pred_dir', type = str, help = 'path to save the predictions')
+    parser.add_argument('--pred_dir', type = str, default = 'result/squad.txt', help = 'path to save the predictions')
     parser.add_argument('--params', type = str, help = 'parameter setting')
     parser.add_argument('--steps', type = int, default = 200000, help = 'training step size')
-    parser.add_argument('--num_epochs', type = int, default = 10, help = 'training epoch size')
+    parser.add_argument('--num_epochs', type = int, default = 8, help = 'training epoch size')
     FLAGS = parser.parse_args()
 
     tf.app.run(main)

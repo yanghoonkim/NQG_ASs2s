@@ -26,7 +26,8 @@ def basic_params():
         context_depth = 512,
         
         # Memory network related parameters
-        latent_type_with_s = 8,
+        latent_type_with_s = 2,
+        latent_type_with_a = 0,
 
         # Attention related parameters
         attn = 'normed_bahdanau',
@@ -46,52 +47,57 @@ def basic_params():
         beam_width = 10,
         length_penalty_weight = 2.1
         )
-    
-def other_params():
-    hparams = basic_params()
-    hparams.voca_size = 45004
-    hparams.embedding = '../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/glove840b_mpqg_vocab300.npy'
-    hparams.embedding_trainable = False
-    hparams.hidden_size = 512
-    hparams.encoder_layer = 1
-    hparams.decoder_layer = 1
+   
 
-    hparams.num_heads = 1
-    hparams.context_depth = 800
-    
-    hparams.batch_size = 64
 
-    return hparams
+def h800_memory_a_1():
+    params = basic_params()
+    params.latent_type_with_s = 0
+    params.latent_type_with_a = 1
+    return params
 
-def other_params1():
-    hparams = basic_params()
-    hparams.voca_size = 34004
-    embedding = '../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy'
+def h800_memory_a_2():
+    params = h800_memory_a_1()
+    params.latent_type_with_a = 2
+    return params
 
-    hparams.maxlen_q_train = 62
-    hparams.maxlen_q_dev = 36
-    hparams.maxlen_q_test = 38
-    hparams.embedding_trainable = False
-    hparams.hidden_size = 800
-    hparams.encoder_layer = 1
-    hparams.decoder_layer = 1
+def h800_memory_a_3():
+    params = h800_memory_a_1()
+    params.latent_type_with_a = 3
+    return params
 
-    hparams.batch_size = 64
-    return hparams
+def h800_memory_a_5():
+    params = h800_memory_a_1()
+    params.latent_type_with_a = 5
+    return params
 
-def other_params2():
-    hparams = basic_params()
-    hparams.voca_size = 34004
-    embedding = '../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy'
+def h800_memory_a_8():
+    params = h800_memory_a_1()
+    params.latent_type_with_a = 8
+    return params
 
-    hparams.maxlen_q_train = 62
-    hparams.maxlen_q_dev = 36
-    hparams.maxlen_q_test = 38
-    hparams.embedding_trainable = False
-    hparams.hidden_size = 512
-    hparams.encoder_layer = 2
-    hparams.decoder_layer = 2
-    hparams.answer_layer = 2
+def h800_memory_a_30():
+    params = h800_memory_a_1()
+    params.latent_type_with_a = 30
+    return params
 
-    hparams.batch_size = 64
-    return hparams
+def h800_memory_a_60():
+    params = h800_memory_a_1()
+    params.latent_type_with_a = 60
+    return params
+
+def h800_memory_s_1():
+    params = basic_params()
+    params.latent_type_with_s = 1
+    return params
+
+def h800_memory_s_5():
+    params = basic_params()
+    params.latent_type_with_s = 5
+    return params
+
+def h800_memory_s_20():
+    params = basic_params()
+    params.latent_type_with_s = 20
+    return params
+

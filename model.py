@@ -114,7 +114,9 @@ def q_generation(features, labels, mode, params):
             last_output = encoder_outputs[:, -1, :] # [batch, 2 * depth]
             m = tf.get_variable('m', [2 * params['hidden_size'], params['latent_type_with_s']], tf.float32)
             p_s = tf.nn.softmax(tf.matmul(last_output, m, name = 'p_s'))
-            o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth] 
+            o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth]
+            if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+                o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
             
         if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
             encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
@@ -145,6 +147,14 @@ def q_generation(features, labels, mode, params):
                 _answer_state.append(partial_state)
             answer_state = tuple(_answer_state)
 
+        if params['latent_type_with_a'] > 0:
+            last_answer = answer_outputs[:, -1, :]
+            m = tf.get_variable('m', [2 * params['hidden_size'], params['latent_type_with_a']], tf.float32)
+            p_s = tf.nn.softmax(tf.matmul(last_answer, m, name = 'p_s'))
+            o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s')
+            if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+                o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
+
         if params['dec_init_ans'] and params['decoder_layer'] == params['answer_layer']:
             copy_state = answer_state
         elif params['encoder_layer'] == params['decoder_layer']:
@@ -172,10 +182,13 @@ def q_generation(features, labels, mode, params):
         
         if params['latent_type_with_s'] > 0:
             cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
+        else:
+            cell_input_fn = None
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
                 attention_layer_size = hidden_size,
+                cell_input_fn = cell_input_fn,
                 initial_cell_state = None)
                 #initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
         
