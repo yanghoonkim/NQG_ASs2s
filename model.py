@@ -117,7 +117,7 @@ def q_generation(features, labels, mode, params):
             o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth]
             if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
                 o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
-            
+            global o_s 
         if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
             encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
             len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
@@ -184,6 +184,15 @@ def q_generation(features, labels, mode, params):
             cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
         else:
             cell_input_fn = None
+            
+            #def cell_input_fn(inputs, attention):
+            #    global o_s
+            #    if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            #        inputs = inputs[0::beam_width]
+            #    o_s = tf.layers.dense(tf.concat([inputs, o_s], -1), params['hidden_size'], activation = tf.tanh)
+            #    if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            #        o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
+            #    return tf.concat([o_s, attention], -1)
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
