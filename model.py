@@ -109,19 +109,6 @@ def q_generation(features, labels, mode, params):
             encoder_state = tuple(_encoder_state)
 
 
-        # latent interrogative words
-        if params['latent_type_with_s'] > 0:
-            last_output = encoder_outputs[:, -1, :] # [batch, 2 * depth]
-            m = tf.get_variable('m', [2 * params['hidden_size'], params['latent_type_with_s']], tf.float32)
-            p_s = tf.nn.softmax(tf.matmul(last_output, m, name = 'p_s'))
-            o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth]
-            if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
-                o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
-            global o_s 
-        if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
-            encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
-            len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
-
         answer_cell_fw = lstm_cell_enc() if params['answer_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['answer_layer'])])
         answer_cell_bw = lstm_cell_enc() if params['answer_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['answer_layer'])])
 
@@ -133,8 +120,8 @@ def q_generation(features, labels, mode, params):
                 dtype = dtype,
                 scope = 'answer_scope')
         
+        answer_outputs = tf.concat(answer_outputs, -1)
         if params['answer_layer'] == 1:
-            answer_outputs = tf.concat(answer_outputs, -1)
             answer_state_c = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
             answer_state_h = tf.concat([answer_state[0].h, answer_state[1].h], axis = 1)
             answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
@@ -146,6 +133,20 @@ def q_generation(features, labels, mode, params):
                 partial_state = tf.contrib.rnn.LSTMStateTuple(c = partial_state_c, h = partial_state_h)
                 _answer_state.append(partial_state)
             answer_state = tuple(_answer_state)
+
+        # latent interrogative words
+        if params['latent_type_with_s'] > 0:
+            last_output = encoder_outputs[:, -1, :] # [batch, 2 * depth]
+            last_output = tf.expand_dims(last_output, 2) # [batch, 2 * depth, 1]
+            #m = tf.get_variable('m', [2 * params['hidden_size'], params['latent_type_with_s']], tf.float32)
+            m = answer_outputs # [batch, length, 2 * depth]
+            p_s = tf.nn.softmax(tf.matmul(m, last_output, name = 'p_s')) #[batch, length, 1]
+            #o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth]
+            o_s = tf.reduce_sum(p_s * m, axis = 1) # [batch, depth]
+            if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+                o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
+            global o_s 
+
 
         if params['latent_type_with_a'] > 0:
             last_answer = answer_outputs[:, -1, :]
@@ -161,6 +162,10 @@ def q_generation(features, labels, mode, params):
             copy_state = encoder_state
         else:
             copy_state = None
+
+        if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
+            len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
 
         if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0 and copy_state is not None:
             copy_state = tf.contrib.seq2seq.tile_batch(copy_state, beam_width)

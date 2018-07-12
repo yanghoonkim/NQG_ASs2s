@@ -101,3 +101,117 @@ def h800_memory_s_20():
     params.latent_type_with_s = 20
     return params
 
+##
+
+def h300_memory_setting5_batch64():
+    params = basic_params()
+    params.hidden_size = 300
+    return params
+
+def h300_memory_setting5_batch32():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 32
+    return params
+
+def h512_memory_setting5_batch64():
+    params = basic_params()
+    params.hidden_size = 512
+    return params
+
+def h512_memory_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    return params
+
+def h1024_memory_setting5_batch64():
+    params = basic_params()
+    params.hidden_size = 1024
+    params.batch_size = 64
+    return params
+
+def h350_memory_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+
+def h800_memory_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 128
+    return params
+###
+
+def h200_memory_setting5_batch64_2layer():
+    params = basic_params()
+    params.hidden_size = 200
+    params.encoder_layer = 2
+    params.decoder_layer = 2
+    params.answer_layer = 2
+    return params
+
+def h350_memory_setting5_batch64_2layer():
+    params = h200_memory_setting4_batch64_2layer()
+    params.hidden_size = 350
+    return params
+
+def h512_memory_setting5_batch64_2layer():
+    params = h200_memory_setting4_batch64_2layer()
+    params.hidden_size = 512
+    return params
+
+def h512_memory_setting5_batch64_212layer():
+    params = basic_params()
+    params.hidden_size = 512
+    params.encoder_layer = 2
+    params.decoder_layer = 1
+    params.answer_layer = 2
+    return params
+
+def h512_memory_setting5_batch64_121layer():
+    params = basic_params()
+    params.hidden_size = 512
+    params.decoder_layer = 2
+    return params
+
+def h512_memory_setting5_batch64_221layer():
+    params = basic_params()
+    params.encoder_layer = 2
+    params.decoder_layer = 2
+    params.answer_layer = 1
+    params.hidden_size = 512
+    return params
+
+def h512_memory_setting5_batch64_112layer():
+    params = basic_params()
+    params.answer_layer = 2
+    params.hidden_size = 512
+    return params
+
+def h350_memory_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    return params
+
+def h512_memory_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    return params
+
+def h250_memory_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 250
+    params.batch_size = 128
+    return params
+
+def h250_memory_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 250
+    params.batch_size = 256
+    return params
+
+
