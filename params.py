@@ -50,29 +50,57 @@ def basic_params():
    
 
 
-def h800_memory_a_1():
+def h800_divert_s1_batch128():
     params = basic_params()
-    params.latent_type_with_s = 0
-    params.latent_type_with_a = 1
+    params.latent_type_with_s = 1
+    params.latent_type_with_a = 0
+    params.batch_size = 128
     return params
 
-def h800_memory_a_2():
-    params = h800_memory_a_1()
-    params.latent_type_with_a = 2
+def h800_divert_s2_batch128():
+    params = basic_params()
+    params.latent_type_with_s = 2
+    params.latent_type_with_a = 0
+    params.batch_size = 128
     return params
 
-def h800_memory_a_3():
-    params = h800_memory_a_1()
-    params.latent_type_with_a = 3
+def h800_divert_s8_batch128():
+    params = basic_params()
+    params.latent_type_with_s = 8
+    params.latent_type_with_a = 0
+    params.batch_size = 128
     return params
 
-def h800_memory_a_5():
-    params = h800_memory_a_1()
-    params.latent_type_with_a = 5
+def h800_divert_s20_batch128():
+    params = basic_params()
+    params.latent_type_with_s = 20
+    params.latent_type_with_a = 0
+    params.batch_size = 128
+    return params
+
+def h800_divert_s50_batch128():
+    params = basic_params()
+    params.latent_type_with_s = 50
+    params.latent_type_with_a = 0
+    params.batch_size = 128
+    return params
+
+def h800_divert_s100_batch128():
+    params = basic_params()
+    params.latent_type_with_s = 100
+    params.latent_type_with_a = 0
+    params.batch_size = 128
+    return params    
+
+def h800_divert_s256_batch128():
+    params = basic_params()
+    params.latent_type_with_s = 256
+    params.latent_type_with_a = 0
+    params.batch_size = 128
     return params
 
 def h800_memory_a_8():
-    params = h800_memory_a_1()
+    params = h800_divert_s1_batch128()
     params.latent_type_with_a = 8
     return params
 

@@ -111,13 +111,23 @@ def q_generation(features, labels, mode, params):
 
         # latent interrogative words
         if params['latent_type_with_s'] > 0:
-            last_output = encoder_outputs[:, -1, :] # [batch, 2 * depth]
-            m = tf.get_variable('m', [2 * params['hidden_size'], params['latent_type_with_s']], tf.float32)
-            p_s = tf.nn.softmax(tf.matmul(last_output, m, name = 'p_s'))
-            o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth]
+            c = encoder_outputs[:, -1, :] # [batch, 2 * depth]
+            t_wave = tf.layers.dense(c, 2 * params['hidden_size']) # [batch, 2 * depth]
+            t = tf.reshape(t_wave, [-1, params['hidden_size'], 2])
+            t = tf.reduce_max(t, axis = -1) # [batch, depth]
+            
+            m = tf.get_variable('m', [params['hidden_size'], params['latent_type_with_s']], tf.float32)
+            tw = tf.layers.dense(t, params['hidden_size'])
+            twm = tf.matmul(tw, m)# [batch, depth]
+            p_s = tf.nn.softmax(twm)
+            m_idx = tf.argmax(p_s, -1) # [batch]
+            m_idx = tf.expand_dims(m_idx, 1) # [batch, 1]
+            m_extracted = tf.gather_nd(m, m_idx) # [batch, depth]
+
+            #o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth]
             if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
-                o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
-            global o_s 
+                m_extracted = tf.contrib.seq2seq.tile_batch(m_extracted, beam_width)
+            global m_extracted 
         if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
             encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
             len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
@@ -181,7 +191,7 @@ def q_generation(features, labels, mode, params):
         decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
         
         if params['latent_type_with_s'] > 0:
-            cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
+            cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, m_extracted], -1)
         else:
             cell_input_fn = None
             
