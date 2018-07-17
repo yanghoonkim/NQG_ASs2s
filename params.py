@@ -26,7 +26,7 @@ def basic_params():
         context_depth = 512,
         
         # Memory network related parameters
-        latent_type_with_s = 2,
+        latent_type_with_s = 0,
         latent_type_with_a = 0,
 
         # Attention related parameters
@@ -50,82 +50,789 @@ def basic_params():
    
 
 
-def h800_divert_s1_batch128():
+def h200_setting7_batch32():
     params = basic_params()
-    params.latent_type_with_s = 1
-    params.latent_type_with_a = 0
-    params.batch_size = 128
+    params.hidden_size = 200
+    params.batch_size = 32
+    params.latent_type_with_a = 2
     return params
 
-def h800_divert_s2_batch128():
+def h200_setting7_batch64():
     params = basic_params()
-    params.latent_type_with_s = 2
-    params.latent_type_with_a = 0
-    params.batch_size = 128
-    return params
-
-def h800_divert_s8_batch128():
-    params = basic_params()
-    params.latent_type_with_s = 8
-    params.latent_type_with_a = 0
-    params.batch_size = 128
-    return params
-
-def h800_divert_s20_batch128():
-    params = basic_params()
-    params.latent_type_with_s = 20
-    params.latent_type_with_a = 0
-    params.batch_size = 128
-    return params
-
-def h800_divert_s50_batch128():
-    params = basic_params()
-    params.latent_type_with_s = 50
-    params.latent_type_with_a = 0
-    params.batch_size = 128
-    return params
-
-def h800_divert_s100_batch128():
-    params = basic_params()
-    params.latent_type_with_s = 100
-    params.latent_type_with_a = 0
-    params.batch_size = 128
-    return params    
-
-def h800_divert_s256_batch128():
-    params = basic_params()
-    params.latent_type_with_s = 256
-    params.latent_type_with_a = 0
-    params.batch_size = 128
-    return params
-
-def h800_memory_a_8():
-    params = h800_divert_s1_batch128()
+    params.hidden_size = 200
+    params.batch_size = 64
     params.latent_type_with_a = 8
     return params
 
-def h800_memory_a_30():
-    params = h800_memory_a_1()
-    params.latent_type_with_a = 30
-    return params
-
-def h800_memory_a_60():
-    params = h800_memory_a_1()
-    params.latent_type_with_a = 60
-    return params
-
-def h800_memory_s_1():
+def h200_setting7_batch128():
     params = basic_params()
-    params.latent_type_with_s = 1
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 20
     return params
 
-def h800_memory_s_5():
+def h200_setting7_batch256():
     params = basic_params()
-    params.latent_type_with_s = 5
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 50
     return params
 
-def h800_memory_s_20():
+def h350_setting7_batch32():
     params = basic_params()
-    params.latent_type_with_s = 20
+    params.hidden_size = 350
+    params.batch_size = 32
+    params.latent_type_with_a = 2
+    return params
+
+def h350_setting7_batch64():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 64
+    params.latent_type_with_a = 8
+    return params
+
+def h350_setting7_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 20
+    return params
+
+def h350_setting7_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 50
+    return params
+
+def h512_setting7_batch32():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 32
+    params.latent_type_with_a = 2
+    return params
+
+def h512_setting7_batch64():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 64
+    params.latent_type_with_a = 8
+    return params
+
+def h512_setting7_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 20
+    return params
+
+def h512_setting7_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 50
+    return params
+
+def h800_setting7_batch32():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 32
+    params.latent_type_with_a = 2
+    return params
+
+def h800_setting7_batch64():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 64
+    params.latent_type_with_a = 8
+    return params
+
+def h800_setting7_batch128():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 128
+    params.latent_type_with_a = 20
+    return params
+
+def h800_setting7_batch256():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 256
+    params.latent_type_with_a = 50
+    return params
+
+# 
+
+def h100_setting7_m1_batch128():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 128
+    params.latent_type_with_a = 1
+    return params
+
+def h100_setting7_m2_batch128():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 128
+    params.latent_type_with_a = 2
+    return params
+
+def h100_setting7_m4_batch128():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 128
+    params.latent_type_with_a = 4
+    return params
+
+def h100_setting7_m8_batch128():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 128
+    params.latent_type_with_a = 8
+    return params
+
+def h100_setting7_m20_batch128():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 128
+    params.latent_type_with_a = 20
+    return params
+
+def h100_setting7_m50_batch128():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 128
+    params.latent_type_with_a = 50
+    return params
+
+def h100_setting7_m100_batch128():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 128
+    params.latent_type_with_a = 100
+    return params
+
+def h100_setting7_m256_batch128():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 128
+    params.latent_type_with_a = 256
+    return params
+
+def h200_setting7_m1_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 1
+    return params
+
+def h200_setting7_m2_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 2
+    return params
+
+def h200_setting7_m4_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 4
+    return params
+
+def h200_setting7_m8_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 8
+    return params
+
+def h200_setting7_m20_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 20
+    return params
+
+def h200_setting7_m50_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 50
+    return params
+
+def h200_setting7_m100_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 100
+    return params
+
+def h200_setting7_m256_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 256
+    return params
+
+def h350_setting7_m1_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 1
+    return params
+
+def h350_setting7_m2_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 2
+    return params
+
+def h350_setting7_m4_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 4
+    return params
+
+def h350_setting7_m8_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 8
+    return params
+
+def h350_setting7_m20_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 20
+    return params
+
+def h350_setting7_m50_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 50
+    return params
+
+def h350_setting7_m100_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 100
+    return params
+
+def h350_setting7_m256_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 256
+    return params
+
+def h512_setting7_m1_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 1
+    return params
+
+def h512_setting7_m2_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 2
+    return params
+
+def h512_setting7_m4_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 4
+    return params
+
+def h512_setting7_m8_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 8
+    return params
+
+def h512_setting7_m20_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 20
+    return params
+
+def h512_setting7_m50_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 50
+    return params
+
+def h512_setting7_m100_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 100
+    return params
+
+def h512_setting7_m256_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 256
+    return params
+
+def h100_setting7_m1_batch256():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 256
+    params.latent_type_with_a = 1
+    return params
+
+def h100_setting7_m2_batch256():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 256
+    params.latent_type_with_a = 2
+    return params
+
+def h100_setting7_m4_batch256():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 256
+    params.latent_type_with_a = 4
+    return params
+
+def h100_setting7_m8_batch256():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 256
+    params.latent_type_with_a = 8
+    return params
+
+def h100_setting7_m20_batch256():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 256
+    params.latent_type_with_a = 20
+    return params
+
+def h100_setting7_m50_batch256():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 256
+    params.latent_type_with_a = 50
+    return params
+
+def h100_setting7_m100_batch256():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 256
+    params.latent_type_with_a = 100
+    return params
+
+def h100_setting7_m256_batch256():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 256
+    params.latent_type_with_a = 256
+    return params
+
+def h200_setting7_m1_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 1
+    return params
+
+def h200_setting7_m2_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 2
+    return params
+
+def h200_setting7_m4_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 4
+    return params
+
+def h200_setting7_m8_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 8
+    return params
+
+def h200_setting7_m20_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 20
+    return params
+
+def h200_setting7_m50_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 50
+    return params
+
+def h200_setting7_m100_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 100
+    return params
+
+def h200_setting7_m256_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 256
+    return params
+
+def h350_setting7_m1_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 1
+    return params
+
+def h350_setting7_m2_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 2
+    return params
+
+def h350_setting7_m4_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 4
+    return params
+
+def h350_setting7_m8_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 8
+    return params
+
+def h350_setting7_m20_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 20
+    return params
+
+def h350_setting7_m50_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 50
+    return params
+
+def h350_setting7_m100_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 100
+    return params
+
+def h350_setting7_m256_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 256
+    return params
+
+def h512_setting7_m1_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 1
+    return params
+
+def h512_setting7_m2_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 2
+    return params
+
+def h512_setting7_m4_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 4
+    return params
+
+def h512_setting7_m8_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 8
+    return params
+
+def h512_setting7_m20_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 20
+    return params
+
+def h512_setting7_m50_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 50
+    return params
+
+def h512_setting7_m100_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 100
+    return params
+
+def h512_setting7_m256_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 256
+    return params
+
+def h100_setting7_m1_batch512():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 512
+    params.latent_type_with_a = 1
+    return params
+
+def h100_setting7_m2_batch512():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 512
+    params.latent_type_with_a = 2
+    return params
+
+def h100_setting7_m4_batch512():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 512
+    params.latent_type_with_a = 4
+    return params
+
+def h100_setting7_m8_batch512():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 512
+    params.latent_type_with_a = 8
+    return params
+
+def h100_setting7_m20_batch512():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 512
+    params.latent_type_with_a = 20
+    return params
+
+def h100_setting7_m50_batch512():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 512
+    params.latent_type_with_a = 50
+    return params
+
+def h100_setting7_m100_batch512():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 512
+    params.latent_type_with_a = 100
+    return params
+
+def h100_setting7_m256_batch512():
+    params = basic_params()
+    params.hidden_size = 100
+    params.batch_size = 512
+    params.latent_type_with_a = 256
+    return params
+
+def h200_setting7_m1_batch512():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 512
+    params.latent_type_with_a = 1
+    return params
+
+def h200_setting7_m2_batch512():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 512
+    params.latent_type_with_a = 2
+    return params
+
+def h200_setting7_m4_batch512():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 512
+    params.latent_type_with_a = 4
+    return params
+
+def h200_setting7_m8_batch512():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 512
+    params.latent_type_with_a = 8
+    return params
+
+def h200_setting7_m20_batch512():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 512
+    params.latent_type_with_a = 20
+    return params
+
+def h200_setting7_m50_batch512():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 512
+    params.latent_type_with_a = 50
+    return params
+
+def h200_setting7_m100_batch512():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 512
+    params.latent_type_with_a = 100
+    return params
+
+def h200_setting7_m256_batch512():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 512
+    params.latent_type_with_a = 256
+    return params
+
+def h350_setting7_m1_batch512():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 512
+    params.latent_type_with_a = 1
+    return params
+
+def h350_setting7_m2_batch512():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 512
+    params.latent_type_with_a = 2
+    return params
+
+def h350_setting7_m4_batch512():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 512
+    params.latent_type_with_a = 4
+    return params
+
+def h350_setting7_m8_batch512():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 512
+    params.latent_type_with_a = 8
+    return params
+
+def h350_setting7_m20_batch512():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 512
+    params.latent_type_with_a = 20
+    return params
+
+def h350_setting7_m50_batch512():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 512
+    params.latent_type_with_a = 50
+    return params
+
+def h350_setting7_m100_batch512():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 512
+    params.latent_type_with_a = 100
+    return params
+
+def h350_setting7_m256_batch512():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 512
+    params.latent_type_with_a = 256
+    return params
+
+def h512_setting7_m1_batch512():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 512
+    params.latent_type_with_a = 1
+    return params
+
+def h512_setting7_m2_batch512():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 512
+    params.latent_type_with_a = 2
+    return params
+
+def h512_setting7_m4_batch512():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 512
+    params.latent_type_with_a = 4
+    return params
+
+def h512_setting7_m8_batch512():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 512
+    params.latent_type_with_a = 8
+    return params
+
+def h512_setting7_m20_batch512():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 512
+    params.latent_type_with_a = 20
+    return params
+
+def h512_setting7_m50_batch512():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 512
+    params.latent_type_with_a = 50
+    return params
+
+def h512_setting7_m100_batch512():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 512
+    params.latent_type_with_a = 100
+    return params
+
+def h512_setting7_m256_batch512():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 512
+    params.latent_type_with_a = 256
     return params
 
