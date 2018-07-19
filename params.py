@@ -43,52 +43,248 @@ def basic_params():
         beam_width = 10,
         length_penalty_weight = 2.1
         )
-    
-def other_params():
-    hparams = basic_params()
-    hparams.voca_size = 45004
-    hparams.embedding = '../qa_generation/data/processed/mpqg_substitute_a_vocab45_include_a/glove840b_mpqg_vocab300.npy'
-    hparams.embedding_trainable = False
-    hparams.hidden_size = 512
-    hparams.encoder_layer = 1
-    hparams.decoder_layer = 1
 
-    hparams.num_heads = 1
-    hparams.context_depth = 800
-    
-    hparams.batch_size = 64
 
-    return hparams
 
-def other_params1():
-    hparams = basic_params()
-    hparams.voca_size = 34004
-    embedding = '../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy'
 
-    hparams.maxlen_q_train = 62
-    hparams.maxlen_q_dev = 36
-    hparams.maxlen_q_test = 38
-    hparams.embedding_trainable = False
-    hparams.hidden_size = 800
-    hparams.encoder_layer = 1
-    hparams.decoder_layer = 1
 
-    hparams.batch_size = 64
-    return hparams
+def h200_s2s_plus_a_batch64():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 64
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
 
-def other_params2():
-    hparams = basic_params()
-    hparams.voca_size = 34004
-    embedding = '../qa_generation/data/processed/full_mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy'
+def h250_s2s_plus_a_batch64():
+    params = basic_params()
+    params.hidden_size = 250
+    params.batch_size = 64
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
 
-    hparams.maxlen_q_train = 62
-    hparams.maxlen_q_dev = 36
-    hparams.maxlen_q_test = 38
-    hparams.embedding_trainable = False
-    hparams.hidden_size = 512
-    hparams.encoder_layer = 2
-    hparams.decoder_layer = 2
-    hparams.answer_layer = 2
+def h300_s2s_plus_a_batch64():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 64
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
 
-    hparams.batch_size = 64
-    return hparams
+def h350_s2s_plus_a_batch64():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 64
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h512_s2s_plus_a_batch64():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 64
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h800_s2s_plus_a_batch64():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 64
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h200_s2s_plus_a_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h250_s2s_plus_a_batch128():
+    params = basic_params()
+    params.hidden_size = 250
+    params.batch_size = 128
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h300_s2s_plus_a_batch128():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 128
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h350_s2s_plus_a_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h512_s2s_plus_a_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h800_s2s_plus_a_batch128():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 128
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h200_s2s_plus_a_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h250_s2s_plus_a_batch256():
+    params = basic_params()
+    params.hidden_size = 250
+    params.batch_size = 256
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h300_s2s_plus_a_batch256():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 256
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h350_s2s_plus_a_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h512_s2s_plus_a_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h800_s2s_plus_a_batch256():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 256
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h200_s2s_plus_a_batch400():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 400
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h250_s2s_plus_a_batch400():
+    params = basic_params()
+    params.hidden_size = 250
+    params.batch_size = 400
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h300_s2s_plus_a_batch400():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 400
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h350_s2s_plus_a_batch400():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 400
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h512_s2s_plus_a_batch400():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 400
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
+def h800_s2s_plus_a_batch400():
+    params = basic_params()
+    params.hidden_size = 800
+    params.batch_size = 400
+    params.latent_type_with_a = 0
+    params.latent_type_with_s = 0
+    params.if_wean = False
+    params.copy_mechanism = False
+    return params
+
