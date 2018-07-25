@@ -135,10 +135,10 @@ def q_generation(features, labels, mode, params):
             answer_state = tuple(_answer_state)
 
         # latent interrogative words
-        if params['latent_type_with_s'] > 0:
+        if params['use_memorynet'] > 0:
             last_output = encoder_outputs[:, -1, :] # [batch, 2 * depth]
             last_output = tf.expand_dims(last_output, 2) # [batch, 2 * depth, 1]
-            #m = tf.get_variable('m', [2 * params['hidden_size'], params['latent_type_with_s']], tf.float32)
+            #m = tf.get_variable('m', [2 * params['hidden_size'], params['use_memorynet']], tf.float32)
             m = answer_outputs # [batch, length, 2 * depth]
             p_s = tf.nn.softmax(tf.matmul(m, last_output, name = 'p_s')) #[batch, length, 1]
             #o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth]
@@ -147,14 +147,6 @@ def q_generation(features, labels, mode, params):
                 o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
             global o_s 
 
-
-        if params['latent_type_with_a'] > 0:
-            last_answer = answer_outputs[:, -1, :]
-            m = tf.get_variable('m', [2 * params['hidden_size'], params['latent_type_with_a']], tf.float32)
-            p_s = tf.nn.softmax(tf.matmul(last_answer, m, name = 'p_s'))
-            o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s')
-            if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
-                o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
 
         if params['dec_init_ans'] and params['decoder_layer'] == params['answer_layer']:
             copy_state = answer_state
@@ -185,7 +177,7 @@ def q_generation(features, labels, mode, params):
         # Build decoder cell
         decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
         
-        if params['latent_type_with_s'] > 0:
+        if params['use_memorynet'] > 0:
             cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
         else:
             cell_input_fn = None
