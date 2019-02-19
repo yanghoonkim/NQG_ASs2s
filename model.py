@@ -9,12 +9,12 @@ import rnn_wrapper as wrapper
 def _attention(params, memory, memory_length):
     if params['attn'] == 'bahdanau':
         return tf.contrib.seq2seq.BahdanauAttention(
-                params['hidden_size']/2,
+                params['hidden_size'] * 2,
                 memory,
                 memory_length)
     elif params['attn'] == 'normed_bahdanau':
         return tf.contrib.seq2seq.BahdanauAttention(
-                params['hidden_size']/2,
+                params['hidden_size'] * 2,
                 memory,
                 memory_length,
                 normalize = True)
@@ -134,19 +134,6 @@ def q_generation(features, labels, mode, params):
                 _answer_state.append(partial_state)
             answer_state = tuple(_answer_state)
 
-        # latent interrogative words
-        if params['use_memorynet'] > 0:
-            last_output = encoder_outputs[:, -1, :] # [batch, 2 * depth]
-            last_output = tf.expand_dims(last_output, 2) # [batch, 2 * depth, 1]
-            #m = tf.get_variable('m', [2 * params['hidden_size'], params['use_memorynet']], tf.float32)
-            m = answer_outputs # [batch, length, 2 * depth]
-            p_s = tf.nn.softmax(tf.matmul(m, last_output, name = 'p_s')) #[batch, length, 1]
-            #o_s = tf.matmul(p_s, m, transpose_b = True, name = 'o_s') # [batch, depth]
-            o_s = tf.reduce_sum(p_s * m, axis = 1) # [batch, depth]
-            if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
-                o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
-            global o_s 
-
 
         if params['dec_init_ans'] and params['decoder_layer'] == params['answer_layer']:
             copy_state = answer_state
@@ -178,7 +165,22 @@ def q_generation(features, labels, mode, params):
         decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
         
         if params['use_memorynet'] > 0:
-            cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
+            #cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
+            def cell_input_fn(inputs, attention):
+                if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+                    last_attention = attention[0::beam_width]
+                else:
+                    last_attention = attention
+                last_attention = tf.expand_dims(last_attention, 2)
+                m = answer_outputs
+                p_s = tf.nn.softmax(tf.matmul(m, last_attention), name = 'p_s')
+                o_s = tf.reduce_sum(p_s * m, axis = 1)
+
+                if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+                    o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
+
+                return tf.concat([inputs, o_s], -1)
+                
         else:
             cell_input_fn = None
             
@@ -193,7 +195,7 @@ def q_generation(features, labels, mode, params):
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
-                attention_layer_size = hidden_size,
+                attention_layer_size = 2 * hidden_size,
                 cell_input_fn = cell_input_fn,
                 initial_cell_state = None)
                 #initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)

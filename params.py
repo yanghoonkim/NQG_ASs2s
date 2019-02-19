@@ -5,7 +5,6 @@ def basic_params():
     return tf.contrib.training.HParams(
         dtype = tf.float32,
         voca_size = 34004,
-        embedding = '../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/glove840b_mpqg_vocab300.npy',
         embedding_trainable = False,
         hidden_size = 800,
         encoder_layer = 1,
@@ -389,4 +388,201 @@ def rnn6_attn6():
      
     params.rnn_dropout = 0.6
     params.attn_dropout = 0.6
+    return params
+
+
+def final_h200_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    return params
+
+def final_h200_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    return params
+
+def final_h300_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 128
+    return params
+
+def final_h300_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 256
+    return params
+
+def final_h350_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+
+def final_h350_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    return params
+
+def final_h450_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 450
+    params.batch_size = 128
+    return params
+
+def final_h450_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 450
+    params.batch_size = 256
+    return params
+
+def final_h512_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    return params
+
+def final_h512_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    return params
+
+
+def ner_h200_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 128
+    return params
+
+def ner_h200_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 200
+    params.batch_size = 256
+    return params
+
+def ner_h250_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 250
+    params.batch_size = 128
+    return params
+
+def ner_h250_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 250
+    params.batch_size = 256
+    return params
+
+def ner_h300_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 128
+    return params
+
+def ner_h300_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 300
+    params.batch_size = 256
+    return params
+
+def ner_h350_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+
+def ner_h350_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 256
+    return params
+
+def ner_h400_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 400
+    params.batch_size = 128
+    return params
+
+def ner_h400_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 400
+    params.batch_size = 256
+    return params
+
+def ner_h450_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 450
+    params.batch_size = 128
+    return params
+
+def ner_h450_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 450
+    params.batch_size = 256
+    return params
+
+def ner_h512_setting5_batch128():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 128
+    return params
+
+def ner_h512_setting5_batch256():
+    params = basic_params()
+    params.hidden_size = 512
+    params.batch_size = 256
+    return params
+
+
+
+
+def ner_h350_setting5_batch128_1():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+    
+def ner_h350_setting5_batch128_2():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+
+def ner_h350_setting5_batch128_3():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+    
+def ner_h350_setting5_batch128_4():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+
+def ner_h350_setting5_batch128_5():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+    
+def ner_h350_setting5_batch128_6():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+
+def ner_h350_setting5_batch128_7():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
+    return params
+    
+def ner_h350_setting5_batch128_8():
+    params = basic_params()
+    params.hidden_size = 350
+    params.batch_size = 128
     return params
