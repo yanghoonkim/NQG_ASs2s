@@ -1,4 +1,4 @@
-# question_generation
+# NQG_ASs2s
 Implementation of &lt;Improving Neural Question Generation Using Answer Separation> by Yanghoon Kim et al.
 
 **The source code still needs to be modified**
