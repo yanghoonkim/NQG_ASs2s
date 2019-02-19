@@ -142,7 +142,7 @@ def main(unused):
 
     
 if __name__ == '__main__':
-    base_path = '../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a_pos_ner/'
+    base_path = 'data/processed/mpqg_substitute_a_vocab_include_a/'
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type = str, default = 'train', help = 'train, eval')
     parser.add_argument('--train_sentence', type = str, default= base_path + 'train_sentence.npy', help = 'path to the training sentence.')
@@ -164,7 +164,7 @@ if __name__ == '__main__':
     parser.add_argument('--embedding', type = str, default = base_path + 'glove840b_vocab300.npy')
     parser.add_argument('--dictionary', type = str, default = base_path + 'vocab.dic', help = 'path to the dictionary')
     parser.add_argument('--model_dir', type = str, help = 'path to save the model')
-    parser.add_argument('--pred_dir', type = str, default = 'result/squad.txt', help = 'path to save the predictions')
+    parser.add_argument('--pred_dir', type = str, default = 'result/predictions.txt', help = 'path to save the predictions')
     parser.add_argument('--params', type = str, help = 'parameter setting')
     parser.add_argument('--steps', type = int, default = 200000, help = 'training step size')
     parser.add_argument('--num_epochs', type = int, default = 8, help = 'training epoch size')
