@@ -31,6 +31,7 @@ Processed data provided by [Linfeng Song et al.](https://www.aclweb.org/antholog
 - python 2.7
 - numpy
 - Tensorflow 1.4
+- tqdm
 
 ## Usage
 
@@ -44,3 +45,12 @@ tar -zxvf data/mpqg_data/nqg_data.tgz -C data/mpqg_data
 cd data
 python process_mpqg_data.py # Several settings can be modified inside the source code (data path, vocab_size, etc)
 ```
+
+2. Download & process GloVe
+
+```
+mkdir GloVe # data/GloVe
+wget http://nlp.stanford.edu/data/glove.840B.300d.zip -P GloVe/
+unzip GloVe/glove.840B.300d.zip -d GloVe/
+python process_embedding.py # This will take a couple of minutes
+
