@@ -5,13 +5,27 @@ Implementation of &lt;Improving Neural Question Generation Using Answer Separati
 
 1. **Model**
 
+	- Embedding
+	  - Pretrained GloVe embeddings
+	  - Randomly initialized embeddings
+
+	- Answer-separated seq2seq
+	  - Answer-separated encoder
+	  - Answer-separated decoder
+	    - Keyword-net
+		- Retrieval style word generator
+	
+	- Post processing
+	  - Remove repetition
+
 2. **Dataset**
 
-processed data provided by [Linfeng Song et al.](https://www.aclweb.org/anthology/N18-2090)
+Processed data provided by [Linfeng Song et al.](https://www.aclweb.org/anthology/N18-2090)
 
 ## Requirements
 
 - python 2.7
+- numpy
 - Tensorflow 1.4
 
 ## Usage
