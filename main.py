@@ -47,11 +47,14 @@ def main(unused):
     # Config
     config = tf.contrib.learn.RunConfig(
             model_dir = FLAGS.model_dir, 
-            keep_checkpoint_max = 10, 
+            keep_checkpoint_max = 3, 
             save_checkpoints_steps = 100)
     
     # Load parameters
     model_params = getattr(params, FLAGS.params)().values()
+
+    # Add embedding path to model_params
+    model_params['embedding'] = FLAGS.embedding
 
     # Define estimator
     nn = tf.estimator.Estimator(model_fn=model.q_generation, config = config, params=model_params)
@@ -139,7 +142,7 @@ def main(unused):
 
     
 if __name__ == '__main__':
-    base_path = '../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a/'
+    base_path = '../qa_generation/data/processed/mpqg_substitute_a_vocab_include_a_pos_ner/'
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type = str, default = 'train', help = 'train, eval')
     parser.add_argument('--train_sentence', type = str, default= base_path + 'train_sentence.npy', help = 'path to the training sentence.')
@@ -158,7 +161,8 @@ if __name__ == '__main__':
     parser.add_argument('--test_answer', type = str, default = base_path + 'test_answer.npy', help = 'path to the test answer')
     parser.add_argument('--test_sentence_length', type = str, default = base_path + 'test_length_sentence.npy')
     parser.add_argument('--test_answer_length', type = str, default = base_path + 'test_length_answer.npy')
-    parser.add_argument('--dictionary', type = str, default = base_path + 'vocab_mpqg.dic', help = 'path to the dictionary')
+    parser.add_argument('--embedding', type = str, default = base_path + 'glove840b_vocab300.npy')
+    parser.add_argument('--dictionary', type = str, default = base_path + 'vocab.dic', help = 'path to the dictionary')
     parser.add_argument('--model_dir', type = str, help = 'path to save the model')
     parser.add_argument('--pred_dir', type = str, default = 'result/squad.txt', help = 'path to save the predictions')
     parser.add_argument('--params', type = str, help = 'parameter setting')

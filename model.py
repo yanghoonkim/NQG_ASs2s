@@ -9,12 +9,12 @@ import rnn_wrapper as wrapper
 def _attention(params, memory, memory_length):
     if params['attn'] == 'bahdanau':
         return tf.contrib.seq2seq.BahdanauAttention(
-                params['hidden_size']/2,
+                params['hidden_size'] * 2,
                 memory,
                 memory_length)
     elif params['attn'] == 'normed_bahdanau':
         return tf.contrib.seq2seq.BahdanauAttention(
-                params['hidden_size']/2,
+                params['hidden_size'] * 2,
                 memory,
                 memory_length,
                 normalize = True)
@@ -108,9 +108,6 @@ def q_generation(features, labels, mode, params):
                 _encoder_state.append(partial_state)
             encoder_state = tuple(_encoder_state)
 
-        if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
-            encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
-            len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
 
         answer_cell_fw = lstm_cell_enc() if params['answer_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['answer_layer'])])
         answer_cell_bw = lstm_cell_enc() if params['answer_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_enc() for _ in range(params['answer_layer'])])
@@ -123,8 +120,8 @@ def q_generation(features, labels, mode, params):
                 dtype = dtype,
                 scope = 'answer_scope')
         
+        answer_outputs = tf.concat(answer_outputs, -1)
         if params['answer_layer'] == 1:
-            answer_outputs = tf.concat(answer_outputs, -1)
             answer_state_c = tf.concat([answer_state[0].c, answer_state[1].c], axis = 1)
             answer_state_h = tf.concat([answer_state[0].h, answer_state[1].h], axis = 1)
             answer_state = tf.contrib.rnn.LSTMStateTuple(c = answer_state_c, h = answer_state_h)
@@ -137,12 +134,17 @@ def q_generation(features, labels, mode, params):
                 _answer_state.append(partial_state)
             answer_state = tuple(_answer_state)
 
+
         if params['dec_init_ans'] and params['decoder_layer'] == params['answer_layer']:
             copy_state = answer_state
         elif params['encoder_layer'] == params['decoder_layer']:
             copy_state = encoder_state
         else:
             copy_state = None
+
+        if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            encoder_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
+            len_s = tf.contrib.seq2seq.tile_batch(len_s, beam_width)
 
         if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0 and copy_state is not None:
             copy_state = tf.contrib.seq2seq.tile_batch(copy_state, beam_width)
@@ -161,10 +163,40 @@ def q_generation(features, labels, mode, params):
 
         # Build decoder cell
         decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
+        
+        if params['use_memorynet'] > 0:
+            #cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
+            def cell_input_fn(inputs, attention):
+                if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+                    last_attention = attention[0::beam_width]
+                else:
+                    last_attention = attention
+                last_attention = tf.expand_dims(last_attention, 2)
+                m = answer_outputs
+                p_s = tf.nn.softmax(tf.matmul(m, last_attention), name = 'p_s')
+                o_s = tf.reduce_sum(p_s * m, axis = 1)
+
+                if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+                    o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
+
+                return tf.concat([inputs, o_s], -1)
+                
+        else:
+            cell_input_fn = None
+            
+            #def cell_input_fn(inputs, attention):
+            #    global o_s
+            #    if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            #        inputs = inputs[0::beam_width]
+            #    o_s = tf.layers.dense(tf.concat([inputs, o_s], -1), params['hidden_size'], activation = tf.tanh)
+            #    if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
+            #        o_s = tf.contrib.seq2seq.tile_batch(o_s, beam_width)
+            #    return tf.concat([o_s, attention], -1)
 
         decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                 decoder_cell, attention_mechanism,
-                attention_layer_size = hidden_size,
+                attention_layer_size = 2 * hidden_size,
+                cell_input_fn = cell_input_fn,
                 initial_cell_state = None)
                 #initial_cell_state = encoder_state if params['encoder_layer'] == params['decoder_layer'] else None)
         
