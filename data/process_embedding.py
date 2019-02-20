@@ -11,7 +11,7 @@ print '########## Embedding processing start ##########\n'
 
 dic_dir = 'processed/mpqg_substitute_a_vocab_include_a/'
 dic_name = 'vocab.dic'
-embedding_name = 'glove840b_mpqg_vocab300.npy'
+embedding_name = 'glove840b_vocab300.npy'
 
 data_dir = 'GloVe/'
 glove = 'glove.840B.300d'

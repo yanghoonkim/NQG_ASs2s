@@ -1,7 +1,5 @@
 # NQG_ASs2s
 
-** Still updating...**
-
 Implementation of &lt;Improving Neural Question Generation Using Answer Separation> by Yanghoon Kim et al.
 
 **The source code still needs to be modified**
@@ -19,12 +17,18 @@ Implementation of &lt;Improving Neural Question Generation Using Answer Separati
 	    - Keyword-net
 		- Retrieval style word generator
 	
+	- Named Entity Replacement (To be updated)
+	
 	- Post processing
-	  - Remove repetition
+	  - Remove repetition (To be updated)
 
 2. **Dataset**
 
 Processed data provided by [Linfeng Song et al.](https://www.aclweb.org/anthology/N18-2090)
+
+3. **Extra tools**
+
+    - Parameter Search (To be updated)
 
 ## Requirements
 
@@ -53,4 +57,18 @@ mkdir GloVe # data/GloVe
 wget http://nlp.stanford.edu/data/glove.840B.300d.zip -P GloVe/
 unzip GloVe/glove.840B.300d.zip -d GloVe/
 python process_embedding.py # This will take a couple of minutes
+```
 
+3. Run a single model
+
+```
+# Train
+bash run.sh [dataset] train [checkpoint name] [epochs] # define dataset name inside run.sh
+# EXAMPLE: bash run.sh squad train firstmodel 15
+
+# Test
+bash run.sh [dataset] pred [checkpoint name] [epochs] # enter random number in [epochs]
+# EXAMPLE: bash run.sh squad pred firstmodel 1
+```
+
+4. Parameter search
