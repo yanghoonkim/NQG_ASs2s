@@ -20,7 +20,7 @@ Implementation of &lt;Improving Neural Question Generation Using Answer Separati
 	- Named Entity Replacement (To be updated)
 	
 	- Post processing
-	  - Remove repetition (To be updated)
+	  - Remove duplicates
 
 2. **Dataset**
 
@@ -28,7 +28,7 @@ Processed data provided by [Linfeng Song et al.](https://www.aclweb.org/antholog
 
 3. **Extra tools**
 
-    - Parameter Search (To be updated)
+    - Parameter Search
 
 ## Requirements
 
@@ -72,12 +72,23 @@ bash run.sh [dataset] pred [checkpoint name] [epochs] # enter random number in [
 # EXAMPLE: bash run.sh squad pred firstmodel 1
 ```
 
-4. Parameter search
+3. (\*Optional) Parameter search(Training)
 
 ```
 bash search_params.sh [dataset]
 # EXAMPLE: bash search_params.sh squad
 
 # Tip
-# You can refer to the file 'file_generation_for_search_params.ipynb' to automatically generate the contents of search_params.sh and params.py
+# You can refer to the file 'assets/file_generation_for_search_params.ipynb' to automatically generate the contents of search_params.sh and params.py
+```
+
+4. (\*Optional) Remove duplicates (Post-processing)
+
+<p align="center">
+<img src="assets/remove_duplicates.PNG" width="60%"/>
+</p>
+
+```
+python remove_duplicates.py --source_file [predicted_file] --out_file [post_processed_file] --ngram [scalar]
+# EXAMPLE: python remove_duplicates.py --source_file result/predictions.txt --out_file result/predictions.rmv --ngram 4
 ```
