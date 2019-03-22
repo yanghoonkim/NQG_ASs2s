@@ -35,6 +35,7 @@ Processed data provided by [Linfeng Song et al.](https://www.aclweb.org/antholog
 - python 2.7
 - numpy
 - Tensorflow 1.4
+- nltk
 - tqdm
 
 ## Usage
@@ -72,3 +73,11 @@ bash run.sh [dataset] pred [checkpoint name] [epochs] # enter random number in [
 ```
 
 4. Parameter search
+
+```
+bash search_params.sh [dataset]
+# EXAMPLE: bash search_params.sh squad
+
+# Tip
+# You can refer to the file 'file_generation_for_search_params.ipynb' to automatically generate the contents of search_params.sh and params.py
+```

@@ -164,7 +164,7 @@ def q_generation(features, labels, mode, params):
         # Build decoder cell
         decoder_cell = lstm_cell_dec() if params['decoder_layer'] == 1 else tf.nn.rnn_cell.MultiRNNCell([lstm_cell_dec() for _ in range(params['decoder_layer'])])
         
-        if params['use_memorynet'] > 0:
+        if params['use_keyword'] > 0:
             #cell_input_fn = lambda inputs, attention : tf.concat([inputs, attention, o_s], -1)
             def cell_input_fn(inputs, attention):
                 if mode == tf.estimator.ModeKeys.PREDICT and beam_width > 0:
