@@ -356,8 +356,8 @@ processed_question_dev, length_question_dev = process(filtered_question_dev, wor
 processed_answer_dev, length_answer_dev = process(filtered_answer_dev, word2idx, maxlen_a_dev, if_go = False)
 
 # Processing test data
-processed_sentence_test, length_sentence_test = process(filtered_sentence_test, word2idx, maxlen_s_dev, if_go = False)
-processed_question_test, length_question_test = process(filtered_question_test, word2idx, maxlen_q_dev, if_go = True)
+processed_sentence_test, length_sentence_test = process(filtered_sentence_test, word2idx, maxlen_s_test, if_go = False)
+processed_question_test, length_question_test = process(filtered_question_test, word2idx, maxlen_q_test, if_go = True)
 processed_answer_test, length_answer_test = process(filtered_answer_test, word2idx, maxlen_a_test, if_go = False)
 
 print 'Complete\n'
