@@ -92,9 +92,9 @@ def eval(out_file, src_file, tgt_file, isDIn = False, num_pairs = 500):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-out", "--out_file", dest="out_file", default="squad.txt", help="output file to compare")
-    parser.add_argument("-src", "--src_file", dest="src_file", default="mpqg_src_test.txt", help="src file")
-    parser.add_argument("-tgt", "--tgt_file", dest="tgt_file", default="mpqg_test.txt", help="target file")
+    parser.add_argument("-out", "--out_file", dest="out_file", default="result/predictions.txt", help="output file to compare")
+    parser.add_argument("-src", "--src_file", dest="src_file", default="data/processed/mpqg_substitute_a_vocab_include_a/filtered_txt/test_sentence.txt", help="src file")
+    parser.add_argument("-tgt", "--tgt_file", dest="tgt_file", default="data/processed/mpqg_substitute_a_vocab_include_a/filtered_txt/test_quesiton.txt", help="target file")
     args = parser.parse_args()
 
     print "scores: \n"

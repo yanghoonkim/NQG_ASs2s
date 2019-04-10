@@ -92,3 +92,13 @@ bash search_params.sh [dataset]
 python remove_duplicates.py --source_file [predicted_file] --out_file [post_processed_file] --ngram [scalar]
 # EXAMPLE: python remove_duplicates.py --source_file result/predictions.txt --out_file result/predictions.rmv --ngram 4
 ```
+
+5. Evaluation
+
+```
+python qgevalcap/eval.py -out [output filename] -src [input filename(sentence)] -tgt [target filename(question)]
+# EXAMPLE: python qgevalcap/eval.py -out result/predictions.txt -src data/processed/mpqg_substitute_a_vocab_include_a/filtered_txt/test_sentence_origin.txt -tgt data/processed/mpqg_substitute_a_vocab_include_a/filtered_txt/test_question.txt
+```
+
+## Acknowledgment
+The data is adapted from [MPQG](https://github.com/freesunshine0316/MPQG). The evaluation scripts are adapted from [NQG](https://github.com/xinyadu/nqg).
