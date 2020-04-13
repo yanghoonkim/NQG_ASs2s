@@ -75,7 +75,7 @@ $ bash run.sh [dataset] pred [checkpoint name] [epochs] # enter random number in
 3. (\*Optional) Parameter search(Training)
 
 ```
-bash search_params.sh [dataset]
+$ bash search_params.sh [dataset]
 # EXAMPLE: $ bash search_params.sh squad
 
 # Tip
