@@ -5,7 +5,9 @@ Implementation of &lt;Improving Neural Question Generation Using Answer Separati
 
 ## Notice (2020.07.18)
 **The source code still needs to be modified**
+
 **There will be some updates after mid-September: (maybe pre-trained weight, Named-entity replacement func, etc)**
+
 **Sorry for the delay**
 
 
